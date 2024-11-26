@@ -12,8 +12,8 @@
 
 // Header file for the Digi LoRaWAN communication connection - works with the XBee LR module
 
-#include "flxCoreJobs.h"
-#include "flxFlux.h"
+#include <Flux/flxCoreJobs.h>
+#include <Flux/flxFlux.h>
 
 #include <XBeeArduino.h>
 

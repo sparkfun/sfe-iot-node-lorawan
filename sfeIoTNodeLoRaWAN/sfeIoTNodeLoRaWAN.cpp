@@ -262,7 +262,7 @@ bool sfeIoTNodeLoRaWAN::onSetup()
         flux.dumpDeviceAutoLoadTable();
 
     // Serial UX - pass to our update routine
-    _sysUpdate.setSerialSettings(_serialSettings);
+    // _sysUpdate.setSerialSettings(_serialSettings);
 
     // Button events we're listening on
     _boardButton.on_momentaryPress.call(this, &sfeIoTNodeLoRaWAN::onLogEvent);
@@ -463,7 +463,7 @@ void sfeIoTNodeLoRaWAN::onSettingsEdit(bool bLoading)
         if (inOpMode(kAppOpPendingRestart))
         {
             flxLog_N("\n\rSome changes required a device restart to take effect...");
-            _sysUpdate.restartDevice();
+            // _sysUpdate.restartDevice();
 
             // this shouldn't return unless user aborted
             clearOpMode(kAppOpPendingRestart);
