@@ -11,6 +11,9 @@ project(IoTNodeLoRaWAN NONE)
 # Import the flux-dk cmake system
 include($ENV{FLUX_SDK_PATH}/external/flux_sdk_import.cmake)
 
+# set our Arduino Library name to something unique to this project
+flux_sdk_set_library_name(SparkFun_IoTNodeLoRaWAN)
+
 # Where is directory that the flux stuff will be added to? This is the relative path from this file
 # to the arduino sketch directory this is also used as the name of the cmake project
 flux_sdk_set_project_directory(.)
@@ -46,8 +49,6 @@ flux_sdk_add_module(
     device_scd40
     device_sgp30
     device_sgp40
-    device
-    sgp40
     device_shtc3
     device_stc31
     device_sths34pf80
