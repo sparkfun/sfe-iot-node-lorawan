@@ -60,6 +60,7 @@ jobs:
         run: |
           arduino-cli config set library.enable_unsafe_install true
           arduino-cli lib install --git-url "https://github.com/felixgalindo/XBeeArduino.git"
+          arduino-cli lib install FastLED
 
       # Compile time - build the Firmware for the data logger.
       # Note:
