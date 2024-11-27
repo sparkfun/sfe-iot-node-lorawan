@@ -25,6 +25,21 @@ static const char *kProductName = "SparkFun IoT Node LoRaWAN";
 // delay used in loop during startup
 const uint32_t kStartupLoopDelayMS = 70;
 
+// Application keys - used to encrypt runtime secrets for the app.
+//
+// NOTE: Gen a base 64 key  % openssl rand -base64 32
+//       Convert into ASCII ints in python %    data = [ord(c) for c in ss]
+//       Jam into the below array
+
+// If a key array is passed in via a #define, use that, otherwise use a default, dev key
+#ifdef DATALOGGER_IOT_APP_KEY
+static const uint8_t _app_jump[] = IOT_APP_KEY;
+#else
+static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 112, 77,  100, 55,  106, 56,
+                                    78,  68, 69, 108, 98,  118, 51,  65, 90,  48,  51,  82,  111, 120, 56,
+                                    52,  49, 70, 76,  103, 77,  84,  49, 85,  99,  117, 66,  111, 61};
+#endif
+
 //---------------------------------------------------------------------------
 //
 sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN() : _opFlags{0}
@@ -211,6 +226,9 @@ void sfeIoTNodeLoRaWAN::onInit()
     _serialSettings.setSystemRoot(&flux);
     sfeLED.initialize();
     sfeLED.on(sfeLED.Green);
+
+    // app key
+    flux.setAppToken(_app_jump, sizeof(_app_jump));
 
     // we don't want to start connecting to the LoRaWAN right away - the module needs to initialize
     _loraWANConnection.setDelayedStartup(true);
