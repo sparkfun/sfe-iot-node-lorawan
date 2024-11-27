@@ -70,7 +70,7 @@ jobs:
       - name: Compile DataLogger firmware binary
         run:
           arduino-cli compile --fqbn rp2040:rp2040:sparkfun_promicrorp2350 --export-binaries 
-          ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino --library ./SparkFun_IoTNodeLoRaWAN --clean
+          ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino --library `pwd`/SparkFun_IoTNodeLoRaWAN --clean
 
       # Upload the build files - bootloader, paritions, firmware
       - uses: actions/upload-artifact@v3
