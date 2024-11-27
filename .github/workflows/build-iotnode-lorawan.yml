@@ -62,6 +62,8 @@ jobs:
           arduino-cli lib install --git-url "https://github.com/felixgalindo/XBeeArduino.git"
           arduino-cli lib install FastLED
 
+      - name: Config test
+        run: tree
       # Compile time - build the Firmware for the data logger.
       # Note:
       #   - The use of a full path to flux - this is needed or the build fails (relative paths get merged).
@@ -69,8 +71,8 @@ jobs:
 
       - name: Compile DataLogger firmware binary
         run:
-          arduino-cli compile --fqbn rp2040:rp2040:sparkfun_promicrorp2350 --export-binaries 
-          ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino --library `pwd`/SparkFun_IoTNodeLoRaWAN --clean
+          arduino-cli compile --fqbn rp2040:rp2040:sparkfun_promicrorp2350 ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
+          --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, paritions, firmware
       - uses: actions/upload-artifact@v3
