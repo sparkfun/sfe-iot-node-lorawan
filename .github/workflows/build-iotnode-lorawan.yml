@@ -62,8 +62,6 @@ jobs:
           arduino-cli lib install --git-url "https://github.com/felixgalindo/XBeeArduino.git"
           arduino-cli lib install FastLED
 
-      - name: Config test
-        run: tree
       # Compile time - build the Firmware for the data logger.
       # Note:
       #   - The use of a full path to flux - this is needed or the build fails (relative paths get merged).
