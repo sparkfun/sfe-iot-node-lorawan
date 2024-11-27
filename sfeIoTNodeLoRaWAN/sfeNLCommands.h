@@ -100,8 +100,8 @@ class sfeNLCommands
     // //---------------------------------------------------------------------
     bool restartDevice(sfeIoTNodeLoRaWAN *theApp)
     {
-        if (theApp)
-            theApp->_sysUpdate.restartDevicePrompt();
+        // if (theApp)
+        //     theApp->_sysUpdate.restartDevicePrompt();
 
         return true;
     }
@@ -109,8 +109,8 @@ class sfeNLCommands
     bool restartDeviceForced(sfeIoTNodeLoRaWAN *theApp)
     {
 
-        if (theApp)
-            theApp->_sysUpdate.restartDevice();
+        // if (theApp)
+        //     theApp->_sysUpdate.restartDevice();
 
         return true;
     }
