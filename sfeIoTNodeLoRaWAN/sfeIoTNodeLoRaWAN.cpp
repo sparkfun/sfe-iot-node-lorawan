@@ -315,7 +315,7 @@ void sfeIoTNodeLoRaWAN::onDeviceLoad()
 void sfeIoTNodeLoRaWAN::onRestore()
 {
     // flxLog_I("in onRestore()");
-    setAppClassID(kDLAppClassNameID, kAppClassPrefix);
+    setAppClassID(kDLAppClassNameID, (char *)kAppClassPrefix);
 }
 
 //---------------------------------------------------------------------------
