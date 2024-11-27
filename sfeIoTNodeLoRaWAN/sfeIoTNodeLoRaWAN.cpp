@@ -40,6 +40,8 @@ static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 11
                                     52,  49, 70, 76,  103, 77,  84,  49, 85,  99,  117, 66,  111, 61};
 #endif
 
+// Our ID/App class prefix
+#define kAppClassPrefix "INLW"
 //---------------------------------------------------------------------------
 //
 sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN() : _opFlags{0}
@@ -313,6 +315,7 @@ void sfeIoTNodeLoRaWAN::onDeviceLoad()
 void sfeIoTNodeLoRaWAN::onRestore()
 {
     // flxLog_I("in onRestore()");
+    setAppClassID(kDLAppClassNameID, kAppClassPrefix);
 }
 
 //---------------------------------------------------------------------------
