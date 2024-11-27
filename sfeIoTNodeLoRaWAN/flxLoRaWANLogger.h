@@ -14,8 +14,8 @@
 #include <initializer_list>
 #include <vector>
 
-#include "flxCore.h"
 #include "flxLoRaWANDigi.h"
+#include <Flux/flxCore.h>
 
 // Define the Logging class
 class flxLoRaWANLogger : public flxActionType<flxLoRaWANLogger>

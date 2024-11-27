@@ -22,11 +22,11 @@
 #include <Flux/flxSettings.h>
 #include <Flux/flxSettingsSerial.h>
 #include <Flux/flxStorageKVPPref.h>
-#include <Flux/flxSysFirmware.h>
+// #include <Flux/flxSysFirmware.h>
 
+#include "flxLoRaWANDigi.h"
+#include "flxLoRaWANLogger.h"
 #include "sfeNLButton.h"
-#include <Flux/flxLoRaWANDigi.h>
-#include <Flux/flxLoRaWANLogger.h>
 
 // Buffer size of our JSON document output
 const uint16_t kAppJSONDocSize = 1600;
@@ -197,7 +197,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     flxKVPStoreDeviceRP2 _sysStorageDevice;
 
     // Our firmware Update/Reset system
-    flxSysFirmware _sysUpdate;
+    // flxSysFirmware _sysUpdate;
     // for our button events of the board
     // sfeDLButton _boardButton;
 
