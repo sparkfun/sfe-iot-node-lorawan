@@ -9,9 +9,9 @@
  */
 
 #include "flxLoRaWANDigi.h"
-#include <FLux/flxNetwork.h>
-#include <FLux/flxSerial.h>
-#include <FLux/flxSettings.h>
+#include <Flux/flxNetwork.h>
+#include <Flux/flxSerial.h>
+#include <Flux/flxSettings.h>
 
 // for network data endian conversion
 #include <lwip/def.h>
