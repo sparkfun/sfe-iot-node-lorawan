@@ -375,7 +375,11 @@ bool sfeIoTNodeLoRaWAN::onStart()
 
     // now load our LoRaWAN .. delay for the module to initialize
     if (!_loraWANConnection.connect())
+    {
         flxLog_N(" - connectivity not available");
+        // put the module in a reconnect state
+        _loraWANConnection.startReconnectMode();
+    }
 
     // connect the LoRaWAN logger to the LoRaWAN object
     _loraWANLogger.setLoRaWAN(&_loraWANConnection);
