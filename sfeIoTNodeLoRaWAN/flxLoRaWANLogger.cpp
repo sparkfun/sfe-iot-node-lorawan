@@ -34,7 +34,7 @@ void flxLoRaWANLogger::logObservation(void)
 {
 
     // no LoRaWAN object - nothing to do
-    if (!_pLoRaWAN)
+    if (!_pLoRaWAN || !_pLoRaWAN->isConnected())
         return;
 
     // loop over our devices
