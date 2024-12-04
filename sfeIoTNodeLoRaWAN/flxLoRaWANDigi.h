@@ -20,8 +20,6 @@
 // Setup an event
 flxDefineEventID(kLoRaWANSendStatus);
 
-const uint16_t kLoRaWANUpdateHandlerTimeMS = 1500;
-
 class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 {
   private:
@@ -69,6 +67,8 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     bool initialize(void);
 
+    void startReconnectMode(void);
+
     // used to prevent auto connect when init called - rare case
     void setDelayedStartup(bool bDelay = true)
     {
@@ -94,9 +94,10 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     bool flushBuffer(void);
 
   private:
-    void jobHandlerCB(void);
+    void connectionStatusCB(void);
     bool setupModule(void);
     bool configureModule(void);
+    void reconnectJobCB(void);
 
     // send our payload buffer
     bool sendPayload(const uint8_t *payload, size_t len);
@@ -112,7 +113,11 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     bool _moduleInitialized;
 
-    flxJob _theJob;
+    // our job for the connection status
+    flxJob _connectionJob;
+
+    // our job for reconnection
+    flxJob _reconnectJob;
 
     // Our XBee object for the LoRaWAN module
     XBeeArduino *_pXBeeLR;

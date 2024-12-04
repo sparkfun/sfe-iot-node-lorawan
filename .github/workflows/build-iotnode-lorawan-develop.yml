@@ -2,7 +2,7 @@ name: IoT Node - LoRaWAN -  Firmware build Action
 on:
   push:
     branches:
-      - main
+      - develop
 
   workflow_dispatch:
     branches:
@@ -21,7 +21,7 @@ jobs:
       - name: Checkout Repo and submodules
         uses: actions/checkout@v3
         with:
-          ref: main
+          ref: develop
 
       # checkout flux-sdk
       - name: Checkout the flux-sdk

@@ -22,8 +22,15 @@
 
 // Define a connection iteration value - exceed this, skip the connection
 
-#define kMaxConnectionTries 10
+#define kMaxConnectionTries 3
 
+// How often is the connection status checked ... in MS
+const uint16_t kLoRaWANUpdateHandlerTimeMS = 15000;
+
+// Define times (in ms) for the reconnected job
+const uint32_t kReconnectInitialTime = 30000;
+// 1 hour
+const uint32_t kReconnectMaxTime = 3600000;
 //----------------------------------------------------------------
 // Callbacks for the XBee LR module - these are static functions
 //
@@ -92,7 +99,15 @@ void flxLoRaWANDigi::set_isEnabled(bool bEnabled)
     _isEnabled = bEnabled;
 
     if (_isEnabled)
-        (void)connect();
+    {
+        // Try to connect ..
+        if (!connect())
+        {
+            // failed to connect - set the reconnect job
+            _reconnectJob.setPeriod(kReconnectInitialTime);
+            flxAddJobToQueue(_reconnectJob);
+        }
+    }
     else
         disconnect();
 }
@@ -113,6 +128,7 @@ bool flxLoRaWANDigi::configureModule(void)
 
     // Now initialize the module
 
+    flxLog_I("Setting App EUI: %s", appEUI().c_str());
     // App EUI
     if (appEUI().size() == 0)
     {
@@ -122,33 +138,37 @@ bool flxLoRaWANDigi::configureModule(void)
     if (!_pXBeeLR->setLoRaWANAppEUI(appEUI().c_str()))
     {
         flxLog_E(F("%s: Failed to set the App EUI"), name());
-        return false;
+        // return false;
     }
     flxLog_N_(F("."));
 
+    flxLog_I("Setting App Key: %s", appKey().c_str());
     // App Key
     if (appKey().size() == 0)
     {
         flxLog_E(F("%s: No App Key provided"), name());
         return false;
     }
+    flxLog_I(F("Setting App Key: %s"), appKey().c_str());
     if (!_pXBeeLR->setLoRaWANAppKey(appKey().c_str()))
     {
         flxLog_E(F("%s: Failed to set the App Key"), name());
-        return false;
+        // return false;
     }
     flxLog_N_(F("."));
 
     // Network Key
+    flxLog_I("Setting Network Key: %s", networkKey().c_str());
     if (networkKey().size() == 0)
     {
         flxLog_E(F("%s: No Network Key provided"), name());
         return false;
     }
+    flxLog_I(F("Setting Network Key: %s"), networkKey().c_str());
     if (!_pXBeeLR->setLoRaWANNwkKey(networkKey().c_str()))
     {
         flxLog_E(F("%s: Failed to set the Network Key"), name());
-        return false;
+        // return false;
     }
     flxLog_N_(F("."));
 
@@ -164,14 +184,14 @@ bool flxLoRaWANDigi::configureModule(void)
     if (!_pXBeeLR->writeConfig())
     {
         flxLog_E(F("%s: Failed to write the module configuration"), name());
-        return false;
+        // return false;
     }
 
     flxLog_N_(F("."));
     if (!_pXBeeLR->applyChanges())
     {
         flxLog_E(F("%s: Failed to apply the module configuration"), name());
-        return false;
+        // return false;
     }
     flxLog_N_(F("."));
 
@@ -259,7 +279,7 @@ bool flxLoRaWANDigi::connect(void)
 
     // This might take a few tries ...
     bool status = false;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < kMaxConnectionTries; i++)
     {
         flxLog_N_(F("."));
         if (_pXBeeLR->connect())
@@ -289,7 +309,8 @@ bool flxLoRaWANDigi::connect(void)
     flxSendEvent(flxEvent::kOnConnectionChange, true);
 
     // add the connection monitor job to the system
-    flxAddJobToQueue(_theJob);
+    _connectionJob.setPeriod(kLoRaWANUpdateHandlerTimeMS);
+    flxAddJobToQueue(_connectionJob);
     return true;
 }
 
@@ -306,13 +327,21 @@ void flxLoRaWANDigi::disconnect(void)
         flxSendEvent(flxEvent::kOnConnectionChange, false);
 
     _wasConnected = false;
-    flxRemoveJobFromQueue(_theJob);
+    flxRemoveJobFromQueue(_connectionJob);
 }
 
 //----------------------------------------------------------------
+///
+/// @brief Returns true of the LoRaWAN module is connected
+/// @return [true] on connection, [false] otherwise
+///
 bool flxLoRaWANDigi::isConnected()
 {
-    return (_isEnabled && _pXBeeLR != nullptr && _pXBeeLR->isConnected());
+    // We cache the connection status - so we don't have to check the module, which is *slow*.
+    //
+    // The connection status is checked ever kLoRaWANUpdateHandlerTimeMS via a job
+
+    return _isEnabled && _pXBeeLR != nullptr && _wasConnected;
 }
 
 //----------------------------------------------------------------
@@ -334,13 +363,17 @@ bool flxLoRaWANDigi::initialize(void)
 
     // Setup the LoRaWAN job - called when active to monitor connect/disconnect
 
-    _theJob.setup("Digi LoRaWAN", kLoRaWANUpdateHandlerTimeMS, this, &flxLoRaWANDigi::jobHandlerCB);
+    _connectionJob.setup("Digi LoRaWAN Connection", kLoRaWANUpdateHandlerTimeMS, this,
+                         &flxLoRaWANDigi::connectionStatusCB);
+
+    // our reconnect job
+    _reconnectJob.setup("Digi LoRaWAN Reconnect", kReconnectInitialTime, this, &flxLoRaWANDigi::reconnectJobCB);
 
     // TODO - Fix in the future - before launch
     // ! - These are hard coded for now - fix in the future
-    appEUI = "37D56A3F6CDCF0A5";
-    appKey = "CD32AAB41C54175E9060D86F3A8B7F48";
-    networkKey = "CD32AAB41C54175E9060D86F3A8B7F48";
+    // appEUI = "37D56A3F6CDCF0A5";
+    // appKey = "CD32AAB41C54175E9060D86F3A8B7F48";
+    // networkKey = "CD32AAB41C54175E9060D86F3A8B7F48";
 
     // TODO <<END>>
     // Do we connect now?
@@ -411,24 +444,84 @@ bool flxLoRaWANDigi::sendPayload(const uint8_t *payload, size_t len)
     return _pXBeeLR->sendData(packet);
 }
 //----------------------------------------------------------------
-void flxLoRaWANDigi::jobHandlerCB(void)
+void flxLoRaWANDigi::connectionStatusCB(void)
 {
     // Connection change???
-    if (_isEnabled)
-    {
-        if (_pXBeeLR == nullptr)
-            return;
+    if (!_isEnabled || _pXBeeLR == nullptr)
+        return;
 
-        bool isConn = _pXBeeLR->isConnected();
-        if (isConn != _wasConnected)
-        {
-            _wasConnected = isConn;
-            flxSendEvent(flxEvent::kOnConnectionChange, _wasConnected);
-        }
+    // check the connection status of the module
+    bool isConn = _pXBeeLR->isConnected();
+
+    // flxLog_I(F("Connection Status: %s"), isConn ? "Connected" : "Disconnected");
+
+    // changed state?
+    if (isConn != _wasConnected)
+    {
+        _wasConnected = isConn;
+        flxSendEvent(flxEvent::kOnConnectionChange, _wasConnected);
+    }
+    // If we lost connection -  crank up reconnect mode
+    if (!_wasConnected)
+    {
+        // if we lost connection, but are still enabled -- which we are at this point --
+        // kick off the reconnect job
+        _reconnectJob.setPeriod(kReconnectInitialTime);
+        flxAddJobToQueue(_reconnectJob);
+
+        // remove the connection check job -- will be relaunched when we reconnect
+        flxRemoveJobFromQueue(_connectionJob);
     }
 }
 
 //----------------------------------------------------------------
+void flxLoRaWANDigi::reconnectJobCB(void)
+{
+    // If we're enabled, and not connected, try to connect
+    if (isConnected())
+    {
+        // We have reconnected, so remove this job
+        flxRemoveJobFromQueue(_reconnectJob);
+        return;
+    }
+
+    // We are not connected, but want to be - Try to connect
+    if (connect())
+    {
+        // We have reconnected, so remove this job
+        flxRemoveJobFromQueue(_reconnectJob);
+        return;
+    }
+
+    // We failed to connect -  - do we need to adjust the time on this job?
+
+    uint32_t currentPeriod = _reconnectJob.period();
+    if (currentPeriod < kReconnectMaxTime)
+    {
+        // double delay (simple backoff strategy)
+        currentPeriod *= 2;
+        if (currentPeriod > kReconnectMaxTime)
+            currentPeriod = kReconnectMaxTime;
+        _reconnectJob.setPeriod(currentPeriod);
+        flxUpdateJobInQueue(_reconnectJob);
+    }
+}
+
+//----------------------------------------------------------------
+// startReconnectMode()
+//
+//
+void flxLoRaWANDigi::startReconnectMode(void)
+{
+    // if we are enabled, start the reconnect job
+    if (_isEnabled)
+    {
+        _reconnectJob.setPeriod(kReconnectInitialTime);
+        flxAddJobToQueue(_reconnectJob);
+    }
+}
+//----------------------------------------------------------------
+
 // data / packet transmission things
 //----------------------------------------------------------------
 // Init the package
@@ -436,7 +529,7 @@ void flxLoRaWANDigi::jobHandlerCB(void)
 bool flxLoRaWANDigi::checkBuffer(size_t len)
 {
     // Make sure we have room for the data of the given size
-    if (!_isEnabled || _pXBeeLR == nullptr || len == 0 || len > kLoRaBufferLen)
+    if (!_isEnabled || _pXBeeLR == nullptr || len == 0 || len > kLoRaBufferLen || !isConnected())
         return false;
 
     if (len > kLoRaBufferLen)
@@ -447,7 +540,7 @@ bool flxLoRaWANDigi::checkBuffer(size_t len)
 
     if (_currentOffset + len > kLoRaBufferLen)
     {
-        // okay - let's send the packet
+        // send the packet
         if (!sendPayload(_packetBuffer, kLoRaBufferLen))
             flxLog_E(F("LoRaWAN: Error sending packet")); // keep on trucking
         // restart the packet
