@@ -8,7 +8,7 @@ on:
     branches:
 
 env:
-  ARDUINO_RP2040_DIR: $HOME/.arduino15/packages/rp2040/hardware/rp2040/4.3.1
+  ARDUINO_RP2040_DIR: .arduino15/packages/rp2040/hardware/rp2040/4.3.1
 #   DATALOGGER_IOT_APP_KEY: ${{ secrets.DATALOGGER_IOT_APP_KEY }}
 #   DATALOGGER_IOT_ID_KEY: ${{ secrets.DATALOGGER_IOT_ID_KEY }}
 
@@ -54,7 +54,7 @@ jobs:
         run: arduino-cli core install rp2040:rp2040@4.3.1
 
       - name: Debug ...
-        run: ls -la $ARDUINO_RP2040_DIR
+        run: ls -la $HOME/$ARDUINO_RP2040_DIR
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries
