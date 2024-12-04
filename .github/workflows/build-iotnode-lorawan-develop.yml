@@ -53,7 +53,7 @@ jobs:
         run: arduino-cli core install rp2040:rp2040@4.3.1
 
       - name: Debug ...
-        run: ls -la $HOME/.arduino15/packages/rp2040/hardware/
+        run: ls -la $HOME/.arduino15/packages/rp2040/hardware/rp2040/4.3.1
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries
