@@ -57,7 +57,7 @@ jobs:
         run: |
           cd patch
           cp boards.txt $HOME/$ARDUINO_RP2040_DIR/boards.txt
-          cp -R sparkfun_iotnode_lorawan $HOME/$ARDUINO_RP2040_DIR/variants/
+          cp -R sparkfun_iotnode_lorawanrp2350 $HOME/$ARDUINO_RP2040_DIR/variants/
           cp sparkfun_iotnode_lorawan_rp2350.h $HOME/$ARDUINO_RP2040_DIR//pico-sdk/src/boards/include/boards/
           cd ..
 
@@ -80,13 +80,13 @@ jobs:
 
       - name: Compile DataLogger firmware binary
         run:
-          arduino-cli compile --fqbn rp2040:rp2040:sparkfun_iotnode_lorawan ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
+          arduino-cli compile --fqbn rp2040:rp2040:sparkfun_iotnode_lorawanrp2350 ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, paritions, firmware
       - uses: actions/upload-artifact@v3
         with:
           name: Upload Build
-          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_iotnode_lorawan/sfeIoTNodeLoRaWAN.ino.uf2
+          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_iotnode_lorawanrp2350/sfeIoTNodeLoRaWAN.ino.uf2
 
       
