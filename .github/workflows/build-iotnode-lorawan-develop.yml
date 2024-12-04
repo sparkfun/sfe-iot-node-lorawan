@@ -65,10 +65,12 @@ jobs:
       - name: Install Flux dependant libraries
         run: ./flux-sdk/install-libs.sh
 
+      # currently using a local copy of the library that removed some warning messages - source is here:
+      # arduino-cli lib install --git-url "https://github.com/felixgalindo/XBeeArduino.git"
       - name: Install The XBee LoRaWAN library
         run: |
           arduino-cli config set library.enable_unsafe_install true
-          arduino-cli lib install --git-url "https://github.com/felixgalindo/XBeeArduino.git"
+          arduino-cli lib install --git-url "https://github.com/gigapod/XBeeArduino.git"
           arduino-cli lib install FastLED
 
       # Compile time - build the Firmware for the data logger.
