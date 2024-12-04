@@ -87,6 +87,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: Upload Build
-          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_promicrorp2350/sfeIoTNodeLoRaWAN.ino.uf2
+          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_iotnode_lorawan/sfeIoTNodeLoRaWAN.ino.uf2
 
       

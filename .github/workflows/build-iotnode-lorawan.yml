@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
     branches:
 
-# env:
+env:
+  ARDUINO_RP2040_DIR: .arduino15/packages/rp2040/hardware/rp2040/4.3.1
 #   DATALOGGER_IOT_APP_KEY: ${{ secrets.DATALOGGER_IOT_APP_KEY }}
 #   DATALOGGER_IOT_ID_KEY: ${{ secrets.DATALOGGER_IOT_ID_KEY }}
 
@@ -52,17 +53,24 @@ jobs:
       - name: Arduino - Install rp2040 platform
         run: arduino-cli core install rp2040:rp2040@4.3.1
 
-      - name: Debug ...
-        run: ls -la $HOME/.arduino15/packages 
+      - name: Patch in our IOT Node boards
+        run: |
+          cd patch
+          cp boards.txt $HOME/$ARDUINO_RP2040_DIR/boards.txt
+          cp -R sparkfun_iotnode_lorawan $HOME/$ARDUINO_RP2040_DIR/variants/
+          cp sparkfun_iotnode_lorawan_rp2350.h $HOME/$ARDUINO_RP2040_DIR//pico-sdk/src/boards/include/boards/
+          cd ..
 
       # install the libraries Flux uses
       - name: Install Flux dependant libraries
         run: ./flux-sdk/install-libs.sh
 
+      # currently using a local copy of the library that removed some warning messages - source is here:
+      # arduino-cli lib install --git-url "https://github.com/felixgalindo/XBeeArduino.git"
       - name: Install The XBee LoRaWAN library
         run: |
           arduino-cli config set library.enable_unsafe_install true
-          arduino-cli lib install --git-url "https://github.com/felixgalindo/XBeeArduino.git"
+          arduino-cli lib install --git-url "https://github.com/gigapod/XBeeArduino.git"
           arduino-cli lib install FastLED
 
       # Compile time - build the Firmware for the data logger.
@@ -72,13 +80,13 @@ jobs:
 
       - name: Compile DataLogger firmware binary
         run:
-          arduino-cli compile --fqbn rp2040:rp2040:sparkfun_promicrorp2350 ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
+          arduino-cli compile --fqbn rp2040:rp2040:sparkfun_iotnode_lorawan ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, paritions, firmware
       - uses: actions/upload-artifact@v3
         with:
           name: Upload Build
-          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_promicrorp2350/sfeIoTNodeLoRaWAN.ino.uf2
+          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_iotnode_lorawan/sfeIoTNodeLoRaWAN.ino.uf2
 
       
