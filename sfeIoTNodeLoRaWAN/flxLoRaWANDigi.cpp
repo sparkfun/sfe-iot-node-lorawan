@@ -371,9 +371,9 @@ bool flxLoRaWANDigi::initialize(void)
 
     // TODO - Fix in the future - before launch
     // ! - These are hard coded for now - fix in the future
-    // appEUI = "37D56A3F6CDCF0A5";
-    // appKey = "CD32AAB41C54175E9060D86F3A8B7F48";
-    // networkKey = "CD32AAB41C54175E9060D86F3A8B7F48";
+    appEUI = "37D56A3F6CDCF0A5";
+    appKey = "CD32AAB41C54175E9060D86F3A8B7F48";
+    networkKey = "CD32AAB41C54175E9060D86F3A8B7F48";
 
     // TODO <<END>>
     // Do we connect now?
