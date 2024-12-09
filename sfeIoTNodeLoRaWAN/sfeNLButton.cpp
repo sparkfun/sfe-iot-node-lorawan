@@ -11,7 +11,7 @@
 #include "sfeNLButton.h"
 #include "sfeNLBoard.h"
 
-// What Defines momemtary press?
+// What Defines momentary press?
 const uint16_t kMomentaryPress = 1001;
 
 // Button Event Types ...
