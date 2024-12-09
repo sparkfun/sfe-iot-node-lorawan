@@ -98,6 +98,7 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     bool setupModule(void);
     bool configureModule(void);
     void reconnectJobCB(void);
+    void processMessagesCB(void);
 
     // send our payload buffer
     bool sendPayload(const uint8_t *payload, size_t len);
@@ -118,6 +119,9 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     // our job for reconnection
     flxJob _reconnectJob;
+
+    // The XBee processing messages (incoming) job
+    flxJob _processJob;
 
     // Our XBee object for the LoRaWAN module
     XBeeArduino *_pXBeeLR;

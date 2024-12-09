@@ -31,6 +31,9 @@ const uint16_t kLoRaWANUpdateHandlerTimeMS = 15000;
 const uint32_t kReconnectInitialTime = 30000;
 // 1 hour
 const uint32_t kReconnectMaxTime = 3600000;
+
+// For the process messages job - in ms.
+const uint32_t kProcessMessagesTime = 2000;
 //----------------------------------------------------------------
 // Callbacks for the XBee LR module - these are static functions
 //
@@ -173,10 +176,9 @@ bool flxLoRaWANDigi::configureModule(void)
     flxLog_N_(F("."));
 
     // This is probably read only - so just try to set ..
-    if (!_pXBeeLR->setLoRaWANClass('C'))
-        flxLog_D(F("%s: Failed to set the LoRaWAN Class"), name());
 
-    if (!_pXBeeLR->setApiOptions(0x01))
+    // Set this to 11
+    if (!_pXBeeLR->setApiOptions(0x11))
         flxLog_W_(F("%s: Failed to set the API Options"), name());
 
     flxLog_N_(F("."));
@@ -299,6 +301,9 @@ bool flxLoRaWANDigi::connect(void)
 
         return false;
     }
+    // We are connected -- make sure the class is set.
+    if (!_pXBeeLR->setLoRaWANClass('C'))
+        flxLog_I(F("%s: Failed to set the LoRaWAN Class"), name());
 
     flxSerial.textToGreen();
     flxLog_N(F("Connected!"));
@@ -311,6 +316,10 @@ bool flxLoRaWANDigi::connect(void)
     // add the connection monitor job to the system
     _connectionJob.setPeriod(kLoRaWANUpdateHandlerTimeMS);
     flxAddJobToQueue(_connectionJob);
+
+    // And the message pump job
+    flxAddJobToQueue(_processJob);
+
     return true;
 }
 
@@ -368,6 +377,9 @@ bool flxLoRaWANDigi::initialize(void)
 
     // our reconnect job
     _reconnectJob.setup("Digi LoRaWAN Reconnect", kReconnectInitialTime, this, &flxLoRaWANDigi::reconnectJobCB);
+
+    // Our process messages job
+    _processJob.setup("LoRaWAN Process", kProcessMessagesTime, this, &flxLoRaWANDigi::processMessagesCB);
 
     // TODO - Fix in the future - before launch
     // ! - These are hard coded for now - fix in the future
@@ -471,9 +483,21 @@ void flxLoRaWANDigi::connectionStatusCB(void)
 
         // remove the connection check job -- will be relaunched when we reconnect
         flxRemoveJobFromQueue(_connectionJob);
+
+        // remove our message pump
+        flxRemoveJobFromQueue(_processJob);
     }
 }
 
+//----------------------------------------------------------------
+// Job called to process any LoRaWAN messages
+void flxLoRaWANDigi::processMessagesCB(void)
+{
+    if (!_isEnabled || _pXBeeLR == nullptr)
+        return;
+
+    _pXBeeLR->process();
+}
 //----------------------------------------------------------------
 void flxLoRaWANDigi::reconnectJobCB(void)
 {
@@ -574,6 +598,7 @@ bool flxLoRaWANDigi::sendData(uint8_t tag, int8_t data)
 // uint16_t
 bool flxLoRaWANDigi::sendData(uint8_t tag, uint16_t data)
 {
+    // Send data in network byte order
     uint16_t data16 = htons(data);
     return sendData(tag, (uint8_t *)&data16, sizeof(data));
 }
@@ -587,7 +612,9 @@ bool flxLoRaWANDigi::sendData(uint8_t tag, int16_t data)
 // uint32_t
 bool flxLoRaWANDigi::sendData(uint8_t tag, uint32_t data)
 {
-    uint32_t data32 = htonl(data);
+    // Data is sent in network byte order ..
+    uint32_t data32 = ntohl(data);
+
     return sendData(tag, (uint8_t *)&data32, sizeof(data));
 }
 //------------------------------------------------------------------------------------------
@@ -608,6 +635,7 @@ bool flxLoRaWANDigi::sendData(uint8_t tag, float data)
 bool flxLoRaWANDigi::sendData(uint8_t tag, float data[2])
 {
     uint32_t data32[2];
+    // Send the data in network byte order...
     data32[0] = htonl(*(uint32_t *)&data[0]);
     data32[1] = htonl(*(uint32_t *)&data[1]);
 
