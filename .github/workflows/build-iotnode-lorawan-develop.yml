@@ -58,7 +58,7 @@ jobs:
           cd patch
           cp boards.txt $HOME/$ARDUINO_RP2040_DIR/boards.txt
           cp -R sparkfun_iotnode_lorawanrp2350 $HOME/$ARDUINO_RP2040_DIR/variants/
-          cp sparkfun_iotnode_lorawan_rp2350.h $HOME/$ARDUINO_RP2040_DIR//pico-sdk/src/boards/include/boards/
+          cp sparkfun_iotnode_lorawan_rp2350.h $HOME/$ARDUINO_RP2040_DIR/pico-sdk/src/boards/include/boards/
           cd ..
 
       # install the libraries Flux uses
