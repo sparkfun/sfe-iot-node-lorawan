@@ -19,6 +19,8 @@
 
 // Setup an event
 flxDefineEventID(kLoRaWANSendStatus);
+// Event for received messages
+flxDefineEventID(kLoRaWANReceivedMessage);
 
 class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 {

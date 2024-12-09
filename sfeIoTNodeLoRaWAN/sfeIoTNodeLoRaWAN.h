@@ -113,6 +113,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     void onLogEvent(void);
     void onQwiicButtonEvent(bool);
     void onLoRaWANSendEvent(bool);
+    void onLoRaWANReceiveEvent(uint32_t);
 
     // support for onInit
     void onInitStartupCommands(uint32_t);

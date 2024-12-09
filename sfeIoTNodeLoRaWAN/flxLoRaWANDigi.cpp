@@ -42,6 +42,17 @@ const uint32_t kProcessMessagesTime = 2000;
 static void OnReceiveCallback(void *data)
 {
     XBeeLRPacket_t *packet = (XBeeLRPacket_t *)data;
+
+    // If the packet is on channel two and size of 4, let's post an event
+    if (packet->port == 2 && packet->payloadSize <= 4)
+    {
+        uint32_t message = 0;
+        memcpy(&message, packet->payload, packet->payloadSize);
+
+        // Post an event
+        flxSendEvent(flxEvent::kLoRaWANReceivedMessage, message);
+        return;
+    }
     Serial.print("Received Packet: ");
     for (int i = 0; i < packet->payloadSize; i++)
     {
@@ -303,7 +314,7 @@ bool flxLoRaWANDigi::connect(void)
     }
     // We are connected -- make sure the class is set.
     if (!_pXBeeLR->setLoRaWANClass('C'))
-        flxLog_I(F("%s: Failed to set the LoRaWAN Class"), name());
+        flxLog_D(F("%s: Failed to set the LoRaWAN Class"), name());
 
     flxSerial.textToGreen();
     flxLog_N(F("Connected!"));

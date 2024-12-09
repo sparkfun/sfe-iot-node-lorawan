@@ -25,6 +25,26 @@ static const char *kProductName = "SparkFun IoT Node LoRaWAN";
 // delay used in loop during startup
 const uint32_t kStartupLoopDelayMS = 70;
 
+//---------------------------------------------------------------------------
+// LoRaWAN Receive message ids
+//
+// Set the on-board LED to the RGB value in the message
+const uint8_t kLoRaWANMsgLEDRGB = 0x01;
+
+// Turn off the on-board LED
+const uint8_t kLoRaWANMsgLEDOff = 0x02;
+
+// Set the on-board LED to blink with the given RGB color
+const uint8_t kLoRaWANMsgLEDBlink = 0x03;
+
+// Set the on-board LED to fast blink with the given RGB color
+const uint8_t kLoRaWANMsgLEDFastBlink = 0x04;
+
+// Set the on-board LED to flash with the given RGB color
+const uint8_t kLoRaWANMsgLEDFlash = 0x05;
+
+//---------------------------------------------------------------------------
+
 // Application keys - used to encrypt runtime secrets for the app.
 //
 // NOTE: Gen a base 64 key  % openssl rand -base64 32
@@ -264,6 +284,9 @@ bool sfeIoTNodeLoRaWAN::onSetup()
 
     // Event Callback for lorawan send status
     flxRegisterEventCB(flxEvent::kLoRaWANSendStatus, this, &sfeIoTNodeLoRaWAN::onLoRaWANSendEvent);
+
+    // Event Callback for lorawan receive status
+    flxRegisterEventCB(flxEvent::kLoRaWANReceivedMessage, this, &sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent);
 
     // Set the default timer interval, before restore of settings
     _timer.interval = kDefaultLogInterval;
@@ -542,7 +565,41 @@ void sfeIoTNodeLoRaWAN::onLoRaWANSendEvent(bool bOkay)
     else
         sfeLED.flash(sfeLED.Red);
 }
+//---------------------------------------------------------------------------
+// Callback for LoRaWAN receive events
+void sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent(uint32_t data)
+{
 
+    // flxLog_I("LoRaWAN Received Event: 0x%0.8X", data);
+
+    uint8_t *pData = (uint8_t *)&data;
+
+    // We basically update/change the state of the on-board LED
+    sfeLEDColor_t color;
+    switch (pData[0])
+    {
+    case kLoRaWANMsgLEDRGB:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.on(color);
+        break;
+
+    case kLoRaWANMsgLEDOff:
+        sfeLED.off();
+        break;
+    case kLoRaWANMsgLEDBlink:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.blink(color, 1000);
+        break;
+    case kLoRaWANMsgLEDFastBlink:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.blink(color, 500);
+        break;
+    case kLoRaWANMsgLEDFlash:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.flash(color);
+        break;
+    }
+}
 //---------------------------------------------------------------------------
 // checkBatteryLevels()
 //
