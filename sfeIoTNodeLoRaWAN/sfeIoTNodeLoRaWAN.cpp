@@ -43,6 +43,8 @@ const uint8_t kLoRaWANMsgLEDFastBlink = 0x04;
 // Set the on-board LED to flash with the given RGB color
 const uint8_t kLoRaWANMsgLEDFlash = 0x05;
 
+// Set the brightness for the  on-board LED
+const uint8_t kLoRaWANMsgLEDBrightness = 0x06;
 //---------------------------------------------------------------------------
 
 // Application keys - used to encrypt runtime secrets for the app.
@@ -597,6 +599,10 @@ void sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent(uint32_t data)
     case kLoRaWANMsgLEDFlash:
         color = pData[1] << 16 | pData[2] << 8 | pData[3];
         sfeLED.flash(color);
+        break;
+    case kLoRaWANMsgLEDBrightness:
+        flxLog_I("Brightness: %u", pData[1]);
+        sfeLED.brightness(pData[1]);
         break;
     }
 }

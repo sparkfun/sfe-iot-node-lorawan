@@ -54,6 +54,7 @@ class _sfeLED
     {
         sfeLEDColor_t color;
         uint32_t ticks;
+        uint8_t brightness;
     } colorState_t;
 
     // Command Type
@@ -65,7 +66,8 @@ class _sfeLED
         kCmdFlash = (1 << 2),
         kCmdBlink = (1 << 3),
         kCmdReset = (1 << 4),
-        kCmdUpdate = (1 << 5)
+        kCmdUpdate = (1 << 5),
+        kCmdBrightness = (1 << 6)
     } cmdType_t;
 
     // Command struct
@@ -82,6 +84,7 @@ class _sfeLED
     void blink(sfeLEDColor_t, uint32_t);
     void stop(bool off = true);
     void flash(sfeLEDColor_t color);
+    void brightness(uint8_t);
     void refresh(void);
 
     void _timerCB(void);
@@ -102,7 +105,7 @@ class _sfeLED
     void update(void);
     void queueCommand(cmdType_t command, sfeLEDColor_t color = 0, uint32_t ticks = 0);
 
-    static constexpr uint16_t kStackSize = 10;
+    static constexpr uint16_t kStackSize = 20;
     colorState_t _colorStack[kStackSize];
 
     int _current;
@@ -113,5 +116,7 @@ class _sfeLED
     CRGB _theLED;
 
     bool _disabled;
+
+    uint8_t _brightness;
 };
 extern _sfeLED &sfeLED;
