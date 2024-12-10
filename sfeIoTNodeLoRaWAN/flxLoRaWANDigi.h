@@ -59,6 +59,8 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     flxPropertyRWBool<flxLoRaWANDigi, &flxLoRaWANDigi::get_isEnabled, &flxLoRaWANDigi::set_isEnabled> enabled;
     flxPropertyHiddenBool<flxLoRaWANDigi> _moduleConfigured = {false};
 
+    flxPropertyBool<flxLoRaWANDigi> debugOutput = {false};
+
     // input params/functions
     flxParameterInVoid<flxLoRaWANDigi, &flxLoRaWANDigi::reset_module> resetModule;
 

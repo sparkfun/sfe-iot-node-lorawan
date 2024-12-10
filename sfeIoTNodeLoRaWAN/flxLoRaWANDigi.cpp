@@ -144,67 +144,48 @@ bool flxLoRaWANDigi::configureModule(void)
 
     flxLog_I("Setting App EUI: %s", appEUI().c_str());
     // App EUI
-    if (appEUI().size() == 0)
+    if (appEUI().size() > 0)
     {
-        flxLog_E(F("%s: No App EUI provided"), name());
-        return false;
-    }
-    if (!_pXBeeLR->setLoRaWANAppEUI(appEUI().c_str()))
-    {
-        flxLog_E(F("%s: Failed to set the App EUI"), name());
-        // return false;
+        if (!_pXBeeLR->setLoRaWANAppEUI(appEUI().c_str()))
+            flxLog_W(F("%s: Failed to set the App EUI"), name());
     }
     flxLog_N_(F("."));
 
-    flxLog_I("Setting App Key: %s", appKey().c_str());
     // App Key
-    if (appKey().size() == 0)
+    if (appKey().size() > 0)
     {
-        flxLog_E(F("%s: No App Key provided"), name());
-        return false;
+        flxLog_I(F("Setting App Key: %s"), appKey().c_str());
+        if (!_pXBeeLR->setLoRaWANAppKey(appKey().c_str()))
+            flxLog_W(F("%s: Failed to set the App Key"), name());
     }
-    flxLog_I(F("Setting App Key: %s"), appKey().c_str());
-    if (!_pXBeeLR->setLoRaWANAppKey(appKey().c_str()))
-    {
-        flxLog_E(F("%s: Failed to set the App Key"), name());
-        // return false;
-    }
+
     flxLog_N_(F("."));
 
     // Network Key
-    flxLog_I("Setting Network Key: %s", networkKey().c_str());
-    if (networkKey().size() == 0)
+    if (networkKey().size() > 0)
     {
-        flxLog_E(F("%s: No Network Key provided"), name());
-        return false;
-    }
-    flxLog_I(F("Setting Network Key: %s"), networkKey().c_str());
-    if (!_pXBeeLR->setLoRaWANNwkKey(networkKey().c_str()))
-    {
-        flxLog_E(F("%s: Failed to set the Network Key"), name());
-        // return false;
+        if (!_pXBeeLR->setLoRaWANNwkKey(networkKey().c_str()))
+            flxLog_W(F("%s: Failed to set the Network Key"), name());
     }
     flxLog_N_(F("."));
 
-    // This is probably read only - so just try to set ..
-
-    // Set this to 11
-    if (!_pXBeeLR->setApiOptions(0x11))
-        flxLog_W_(F("%s: Failed to set the API Options"), name());
+    // 12/10/24 - If this is set to 0x11, not 0x1 - sendPacket() call on the Arduino XBee library will timeout
+    // Waiting on a tx response.
+    if (!_pXBeeLR->setApiOptions(0x01))
+        flxLog_W(F("%s: Failed to set the API Options"), name());
 
     flxLog_N_(F("."));
 
     if (!_pXBeeLR->writeConfig())
     {
-        flxLog_E(F("%s: Failed to write the module configuration"), name());
-        // return false;
+        flxLog_W(F("%s: Failed to write the module configuration"), name());
     }
 
     flxLog_N_(F("."));
+
     if (!_pXBeeLR->applyChanges())
     {
-        flxLog_E(F("%s: Failed to apply the module configuration"), name());
-        // return false;
+        flxLog_W(F("%s: Failed to apply the module configuration"), name());
     }
     flxLog_N_(F("."));
 
@@ -375,6 +356,8 @@ bool flxLoRaWANDigi::initialize(void)
     flxRegister(appKey, "Application Key", "The LoRaWAN Application Key");
     flxRegister(networkKey, "Network Key", "The LoRaWAN Network Key");
 
+    debugOutput.setTitle("Advanced");
+    flxRegister(debugOutput, "Debug Packet Output", "Output sent packet values to the console");
     // our hidden module initialized property
     flxRegister(_moduleConfigured, "mod-config");
 
@@ -392,11 +375,14 @@ bool flxLoRaWANDigi::initialize(void)
     // Our process messages job
     _processJob.setup("LoRaWAN Process", kProcessMessagesTime, this, &flxLoRaWANDigi::processMessagesCB);
 
+#if defined(FLX_LORAWAN_APP_EUI)
+    appEUI = FLX_LORAWAN_APP_EUI;
+#endif
     // TODO - Fix in the future - before launch
     // ! - These are hard coded for now - fix in the future
-    appEUI = "37D56A3F6CDCF0A5";
-    appKey = "CD32AAB41C54175E9060D86F3A8B7F48";
-    networkKey = "CD32AAB41C54175E9060D86F3A8B7F48";
+    // appEUI = "37D56A3F6CDCF0A5";
+    // appKey = "CD32AAB41C54175E9060D86F3A8B7F48";
+    // networkKey = "CD32AAB41C54175E9060D86F3A8B7F48";
 
     // TODO <<END>>
     // Do we connect now?
@@ -451,13 +437,15 @@ bool flxLoRaWANDigi::sendPayload(const uint8_t *payload, size_t len)
 
     // Okay, build our packet
 
-    flxLog_I_(F("Sending packet: 0x"));
-    for (int i = 0; i < len; i++)
+    if (debugOutput() == true)
     {
-        flxLog_N_(F("%02X"), payload[i]);
+        flxLog_I_(F("Sending packet: 0x"));
+        for (int i = 0; i < len; i++)
+        {
+            flxLog_N_(F("%02X"), payload[i]);
+        }
+        flxLog_N("");
     }
-    flxLog_N("");
-
     XBeeLRPacket_t packet;
     packet.payload = (uint8_t *)payload;
     packet.payloadSize = len;
