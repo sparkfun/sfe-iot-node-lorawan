@@ -375,8 +375,8 @@ bool flxLoRaWANDigi::initialize(void)
     // Our process messages job
     _processJob.setup("LoRaWAN Process", kProcessMessagesTime, this, &flxLoRaWANDigi::processMessagesCB);
 
-#if defined(FLX_LORAWAN_APP_EUI)
-    appEUI = FLX_LORAWAN_APP_EUI;
+#if defined(FLX_SPARKFUN_LORAWAN_APP_EUI)
+    appEUI = FLX_SPARKFUN_LORAWAN_APP_EUI;
 #endif
     // TODO - Fix in the future - before launch
     // ! - These are hard coded for now - fix in the future
