@@ -217,6 +217,7 @@ void sfeIoTNodeLoRaWAN::onInit()
     verboseDevNames.setTitle("Advanced");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
     flxRegister(startupDelaySecs, "Startup Delay", "Startup Menu Delay in Seconds");
+    flxRegister(verboseEnabled, "Verbose Messages", "Enable verbose messages");
 
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
@@ -658,7 +659,21 @@ void sfeIoTNodeLoRaWAN::set_termBaudRate(uint32_t newRate)
     }
 }
 //---------------------------------------------------------------------------
-//
+// verbose messages
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::set_verbose(bool enable)
+{
+    if (enable)
+        flxSetLoggingVerbose();
+    else
+        flxSetLoggingInfo();
+}
+bool sfeIoTNodeLoRaWAN::get_verbose(void)
+{
+    return flxIsLoggingVerbose();
+}
+//---------------------------------------------------------------------------
+// Loop
 //---------------------------------------------------------------------------
 
 bool sfeIoTNodeLoRaWAN::loop()

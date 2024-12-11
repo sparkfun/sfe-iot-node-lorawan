@@ -31,7 +31,7 @@
 // Buffer size of our JSON document output
 const uint16_t kAppJSONDocSize = 1600;
 // Default log interval in milli secs
-const uint16_t kDefaultLogInterval = 15000;
+const uint16_t kDefaultLogInterval = 45000;
 
 // What is the out of the box baud rate ..
 const uint32_t kDefaultTerminalBaudRate = 115200;
@@ -105,6 +105,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     std::string get_local_name(void);
     void set_local_name(std::string name);
 
+    bool get_verbose(void);
+    void set_verbose(bool enable);
+
     void onSettingsEdit(bool bLoading);
     void onSystemActivity(void);
     void onSystemActivityLow(void);
@@ -163,6 +166,10 @@ class sfeIoTNodeLoRaWAN : public flxApplication
 
     // startup delay setting
     flxPropertyUInt32<sfeIoTNodeLoRaWAN> startupDelaySecs = {0, 60};
+
+    // Verbose messages enabled?
+    flxPropertyRWBool<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_verbose, &sfeIoTNodeLoRaWAN::set_verbose>
+        verboseEnabled = {false};
 
   private:
     friend class sfeNLCommands;
