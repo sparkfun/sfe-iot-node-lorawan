@@ -97,6 +97,14 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
 
     flxLog_N("");
+    if (verboseEnabled())
+    {
+        flxLog___(logLevel, "%cVerbose Messaging: ", pre_ch);
+        flxSerial.textToWhite();
+        flxLog_N("Enabled");
+        flxSerial.textToNormal();
+        flxLog_N("");
+    }
 
     if (!useInfo)
     {
@@ -115,14 +123,16 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     //     flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));
     //     flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
 
-    //     flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)", pre_ch, _theSDCard.type(),
+    //     flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)", pre_ch,
+    //     _theSDCard.type(),
     //              szSize, szCap, szAvail, 100. - (_theSDCard.used() / (float)_theSDCard.total() * 100.));
     // }
     // else
     //     flxLog__(logLevel, "%cSD card not available", pre_ch);
 
     // // show heap level
-    // flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, ESP.getHeapSize(), ESP.getFreeHeap(),
+    // flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, ESP.getHeapSize(),
+    // ESP.getFreeHeap(),
     //          (float)ESP.getFreeHeap() / (float)ESP.getHeapSize() * 100.);
 
     // Battery fuel gauge available?
@@ -160,6 +170,7 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cJSON Buffer - Size: %dB Max Used: %dB", pre_ch, jsonBufferSize(), _fmtJSON.getMaxSizeUsed());
     flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog_N("%c    Baud Rate: %d", pre_ch, serialBaudRate());
+
     // flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
 
     // at startup, useInfo == true, the file isn't known, so skip output
