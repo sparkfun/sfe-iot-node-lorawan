@@ -20,6 +20,9 @@
 #define kXBeeLRSerial Serial1
 #define kXBeeLRBaud 9600
 
+// Our Development App EUI
+#define kDevelopmentAppEUI "37D56A3F6CDCF0A5"
+
 // Define a connection iteration value - exceed this, skip the connection
 
 #define kMaxConnectionTries 3
@@ -51,30 +54,17 @@ static void OnReceiveCallback(void *data)
 
         // Post an event
         flxSendEvent(flxEvent::kLoRaWANReceivedMessage, message);
-        return;
     }
-    Serial.print("Received Packet: ");
-    for (int i = 0; i < packet->payloadSize; i++)
+    if (flxIsLoggingVerbose() && packet->payloadSize > 0)
     {
-        Serial.print("0x");
-        if (packet->payload[i] < 0x10)
-        {
-            Serial.print("0");
-        }
-        Serial.print(packet->payload[i], HEX);
-        Serial.print(" ");
+        flxLog_V_(F("[LoRaWAN] Received Packet: {"));
+
+        for (int i = 0; i < packet->payloadSize; i++)
+            flxLog_N_(F("0x%02X "), packet->payload[i]);
+
+        flxLog_N(F("}  Ack: %u  Port: %u  RSSI: %d  SNR: %d  Downlink Counter: %u"), packet->ack, packet->port,
+                 packet->rssi, packet->snr, packet->counter);
     }
-    Serial.println();
-    Serial.print("Ack: ");
-    Serial.println(packet->ack);
-    Serial.print("Port: ");
-    Serial.println(packet->port);
-    Serial.print("RSSI: ");
-    Serial.println(packet->rssi);
-    Serial.print("SNR: ");
-    Serial.println(packet->snr);
-    Serial.print("Downlink Counter: ");
-    Serial.println(packet->counter);
 }
 
 static void OnSendCallback(void *data)
@@ -82,20 +72,34 @@ static void OnSendCallback(void *data)
     XBeeLRPacket_t *packet = (XBeeLRPacket_t *)data;
     flxSendEvent(flxEvent::kLoRaWANSendStatus, packet->status == 0);
 
-    if (packet->status != 0)
+    if (flxIsLoggingVerbose())
     {
-        flxLog_W_(F("%s: Data send failed. Frame ID: 0X%x Reason: "), packet->frameId);
-        switch (packet->status)
+        if (packet->status == 0 && packet->payloadSize > 0)
         {
-        case 0x01:
-            flxLog_N(F("ACK Failed"));
-            break;
-        case 0x022:
-            flxLog_N(F("Not Connected)"));
-            break;
-        default:
-            flxLog_N_(F("code 0x%X"), packet->status);
-            break;
+            flxLog_V_(F("[LoRaWAN]Sent Packet: {"));
+
+            for (int i = 0; i < packet->payloadSize; i++)
+                flxLog_N_(F("0x%02X "), packet->payload[i]);
+
+            flxLog_N(F("}  Ack: %u  Port: %u  RSSI: %d  SNR: %d  Downlink Counter: %u"), packet->ack, packet->port,
+                     packet->rssi, packet->snr, packet->counter);
+        }
+        else if (packet->status != 0)
+        {
+
+            flxLog_W_(F("[LoRaWAN] Data send failed. Frame ID: 0x%X Reason: "), packet->frameId);
+            switch (packet->status)
+            {
+            case 0x01:
+                flxLog_N(F("ACK Failed"));
+                break;
+            case 0x022:
+                flxLog_N(F("Not Connected)"));
+                break;
+            default:
+                flxLog_N_(F("code 0x%X"), packet->status);
+                break;
+            }
         }
     }
 }
@@ -142,12 +146,12 @@ bool flxLoRaWANDigi::configureModule(void)
 
     // Now initialize the module
 
-    flxLog_I("Setting App EUI: %s", appEUI().c_str());
+    flxLog_N_("Setting App EUI: %s ..", appEUI().c_str());
     // App EUI
     if (appEUI().size() > 0)
     {
         if (!_pXBeeLR->setLoRaWANAppEUI(appEUI().c_str()))
-            flxLog_W(F("%s: Failed to set the App EUI"), name());
+            flxLog_D(F("%s: Failed to set the App EUI"), name());
     }
     flxLog_N_(F("."));
 
@@ -156,7 +160,7 @@ bool flxLoRaWANDigi::configureModule(void)
     {
         flxLog_I(F("Setting App Key: %s"), appKey().c_str());
         if (!_pXBeeLR->setLoRaWANAppKey(appKey().c_str()))
-            flxLog_W(F("%s: Failed to set the App Key"), name());
+            flxLog_D(F("%s: Failed to set the App Key"), name());
     }
 
     flxLog_N_(F("."));
@@ -172,20 +176,20 @@ bool flxLoRaWANDigi::configureModule(void)
     // 12/10/24 - If this is set to 0x11, not 0x1 - sendPacket() call on the Arduino XBee library will timeout
     // Waiting on a tx response.
     if (!_pXBeeLR->setApiOptions(0x01))
-        flxLog_W(F("%s: Failed to set the API Options"), name());
+        flxLog_D(F("%s: Failed to set the API Options"), name());
 
     flxLog_N_(F("."));
 
     if (!_pXBeeLR->writeConfig())
     {
-        flxLog_W(F("%s: Failed to write the module configuration"), name());
+        flxLog_D(F("%s: Failed to write the module configuration"), name());
     }
 
     flxLog_N_(F("."));
 
     if (!_pXBeeLR->applyChanges())
     {
-        flxLog_W(F("%s: Failed to apply the module configuration"), name());
+        flxLog_D(F("%s: Failed to apply the module configuration"), name());
     }
     flxLog_N_(F("."));
 
@@ -356,8 +360,6 @@ bool flxLoRaWANDigi::initialize(void)
     flxRegister(appKey, "Application Key", "The LoRaWAN Application Key");
     flxRegister(networkKey, "Network Key", "The LoRaWAN Network Key");
 
-    debugOutput.setTitle("Advanced");
-    flxRegister(debugOutput, "Debug Packet Output", "Output sent packet values to the console");
     // our hidden module initialized property
     flxRegister(_moduleConfigured, "mod-config");
 
@@ -377,14 +379,10 @@ bool flxLoRaWANDigi::initialize(void)
 
 #if defined(FLX_SPARKFUN_LORAWAN_APP_EUI)
     appEUI = FLX_SPARKFUN_LORAWAN_APP_EUI;
+#else
+    appEUI = kDevelopmentAppEUI;
 #endif
-    // TODO - Fix in the future - before launch
-    // ! - These are hard coded for now - fix in the future
-    // appEUI = "37D56A3F6CDCF0A5";
-    // appKey = "CD32AAB41C54175E9060D86F3A8B7F48";
-    // networkKey = "CD32AAB41C54175E9060D86F3A8B7F48";
 
-    // TODO <<END>>
     // Do we connect now?
 
     // is it desired to delay the startup/connect call?
@@ -435,11 +433,11 @@ bool flxLoRaWANDigi::sendPayload(const uint8_t *payload, size_t len)
     if (!isConnected())
         return false;
 
-    // Okay, build our packet
+    // Okay, build our packet - output if in verbose mode
 
-    if (debugOutput() == true)
+    if (flxIsLoggingVerbose())
     {
-        flxLog_I_(F("Sending packet: 0x"));
+        flxLog_V_(F("[%s] Sending packet: 0x"), name());
         for (int i = 0; i < len; i++)
         {
             flxLog_N_(F("%02X"), payload[i]);
@@ -565,7 +563,7 @@ bool flxLoRaWANDigi::checkBuffer(size_t len)
     {
         // send the packet
         if (!sendPayload(_packetBuffer, kLoRaBufferLen))
-            flxLog_E(F("LoRaWAN: Error sending packet")); // keep on trucking
+            flxLog_W(F("[%s] Error sending packet"), name()); // keep on trucking
         // restart the packet
         _currentOffset = 0;
         memset(_packetBuffer, 0, kLoRaBufferLen);
