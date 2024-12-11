@@ -81,7 +81,7 @@ jobs:
       - name: Compile DataLogger firmware binary
         run:
           arduino-cli compile --fqbn rp2040:rp2040:sparkfun_iotnode_lorawanrp2350 ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
-          --build-property "compiler.cpp.extra_flags=\"-DIOT_NODE_LORAWAN_APP_KEY=$IOT_NODE_LORAWAN_APP_KEY\" \"-DFLX_SPARKFUN_LORAWAN_APP_EUI=$FLX_SPARKFUN_LORAWAN_APP_EUI\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
+          --build-property "compiler.cpp.extra_flags=\"-DIOT_NODE_LORAWAN_APP_KEY=$IOT_NODE_LORAWAN_APP_KEY\" \"-DFLX_SPARKFUN_LORAWAN_APP_EUI=""$FLX_SPARKFUN_LORAWAN_APP_EUI""\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, paritions, firmware
