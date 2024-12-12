@@ -26,6 +26,7 @@ flux_sdk_add_module(
     flux_base
     flux_clock
     flux_logging
+    flux_system
     flux_prefs
     flux_prefs_serial
     flux_network

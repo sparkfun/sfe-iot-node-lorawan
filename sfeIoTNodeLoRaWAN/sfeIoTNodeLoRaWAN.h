@@ -22,7 +22,7 @@
 #include <Flux/flxSettings.h>
 #include <Flux/flxSettingsSerial.h>
 #include <Flux/flxStorageKVPPref.h>
-// #include <Flux/flxSysFirmware.h>
+#include <Flux/flxSystem.h>
 
 #include "flxLoRaWANDigi.h"
 #include "flxLoRaWANLogger.h"
@@ -204,8 +204,8 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     flxStorageKVPPref _sysStorage;
     flxKVPStoreDeviceRP2 _sysStorageDevice;
 
-    // Our firmware Update/Reset system
-    // flxSysFirmware _sysUpdate;
+    // Our system Control
+    flxSystem _sysSystem;
     // for our button events of the board
     // sfeDLButton _boardButton;
 

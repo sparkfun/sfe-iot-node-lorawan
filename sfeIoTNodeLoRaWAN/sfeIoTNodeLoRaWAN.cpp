@@ -357,9 +357,8 @@ bool sfeIoTNodeLoRaWAN::onStart()
     //  - Add the JSON and CVS format to the logger
     _logger.add(_fmtJSON);
     _logger.add(_fmtCSV);
-    // _fmtJSON.add(flxSerial);
-    // _logger.add(_fmtCSV);
-    // _fmtCSV.add(flxSerial);
+
+    _sysSystem.setSerialSettings(_serialSettings);
 
     // check our I2C devices
     // Loop over the device list - note that it is iterable.
