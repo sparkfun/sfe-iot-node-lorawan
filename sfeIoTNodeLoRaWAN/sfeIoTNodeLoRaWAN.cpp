@@ -291,6 +291,9 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // Event Callback for lorawan receive status
     flxRegisterEventCB(flxEvent::kLoRaWANReceivedMessage, this, &sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent);
 
+    // for system reset event
+    flxRegisterEventCB(flxEvent::kOnSystemReset, this, &sfeIoTNodeLoRaWAN::onSystemResetEvent);
+
     // Set the default timer interval, before restore of settings
     _timer.interval = kDefaultLogInterval;
 
@@ -566,6 +569,12 @@ void sfeIoTNodeLoRaWAN::onLoRaWANSendEvent(bool bOkay)
         sfeLED.flash(sfeLED.Green);
     else
         sfeLED.flash(sfeLED.Red);
+}
+
+void sfeIoTNodeLoRaWAN::onSystemResetEvent(void)
+{
+    // The system is being reset - reset our settings
+    flxSettings.reset();
 }
 //---------------------------------------------------------------------------
 // Callback for LoRaWAN receive events

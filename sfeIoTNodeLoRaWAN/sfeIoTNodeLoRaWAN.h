@@ -112,6 +112,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     void onSystemActivity(void);
     void onSystemActivityLow(void);
 
+    // event callback for system reset
+    void onSystemResetEvent(void);
+
     void onErrorMessage(uint8_t);
     void onLogEvent(void);
     void onQwiicButtonEvent(bool);
