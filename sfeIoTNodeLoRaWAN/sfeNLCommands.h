@@ -383,6 +383,21 @@ class sfeNLCommands
         flxLog_I("Device ID: %s", flux.deviceId());
 
         return true;
+    } //---------------------------------------------------------------------
+    ///
+    /// @brief Toggle verbose output
+    ///
+    /// @param theApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool toggleVerboseOutput(sfeIoTNodeLoRaWAN *theApp)
+    {
+
+        if (theApp)
+            theApp->set_verbose(!theApp->get_verbose());
+        flxLog_I("Verbose Output %s", theApp->get_verbose() ? "Enabled" : "Disabled");
+
+        return true;
     }
 
     //---------------------------------------------------------------------
@@ -404,6 +419,7 @@ class sfeNLCommands
         {"heap", &sfeNLCommands::heapStatus},
         {"systime", &sfeNLCommands::outputSystemTime},
         {"uptime", &sfeNLCommands::outputUpTime},
+        {"verbose", &sfeNLCommands::toggleVerboseOutput},
         {"device-id", &sfeNLCommands::printDeviceID},
         {"version", &sfeNLCommands::printVersion},
         {"about", &sfeNLCommands::aboutDevice},
