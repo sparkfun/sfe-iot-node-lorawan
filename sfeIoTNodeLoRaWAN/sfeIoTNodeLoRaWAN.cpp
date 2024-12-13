@@ -517,7 +517,7 @@ void sfeIoTNodeLoRaWAN::onSettingsEdit(bool bLoading)
         if (inOpMode(kAppOpPendingRestart))
         {
             flxLog_N("\n\rSome changes required a device restart to take effect...");
-            // _sysUpdate.restartDevice();
+            _sysSystem.restartDevice();
 
             // this shouldn't return unless user aborted
             clearOpMode(kAppOpPendingRestart);

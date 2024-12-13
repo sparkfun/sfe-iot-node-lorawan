@@ -25,46 +25,28 @@ class sfeNLCommands
     //---------------------------------------------------------------------
     // Command Callbacks
     //---------------------------------------------------------------------
-    // bool factoryResetDevice(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
 
-    //     return theApp->_sysUpdate.factoryResetDevice();
-    // }
+    //---------------------------------------------------------------------
+    bool resetDevice(sfeIoTNodeLoRaWAN *theApp)
+    {
+        if (!theApp)
+            return false;
 
-    // //---------------------------------------------------------------------
-    // bool resetDevice(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
+        theApp->_sysSystem.resetDevicePrompt();
 
-    //     // Need to prompt for an a-okay ...
-    //     Serial.printf("\n\rClear and Restart Device? [Y/n]? ");
-    //     uint8_t selected = theApp->_serialSettings.getMenuSelectionYN();
-    //     flxLog_N("");
+        // should never get here
+        return true;
+    }
+    //---------------------------------------------------------------------
+    bool resetDeviceForced(sfeIoTNodeLoRaWAN *theApp)
+    {
+        if (!theApp)
+            return false;
 
-    //     if (selected != 'y' || selected == kReadBufferTimeoutExpired || selected == kReadBufferExit)
-    //     {
-    //         flxLog_I(F("Aborting..."));
-    //         return false;
-    //     }
+        theApp->_sysSystem.resetDevice();
 
-    //     return resetDeviceForced(theApp);
-    // }
-    // //---------------------------------------------------------------------
-    // bool resetDeviceForced(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
-
-    //     theApp->_sysStorage.resetStorage();
-    //     flxLog_I(F("Settings Cleared"));
-
-    //     theApp->_sysUpdate.restartDevice();
-
-    //     return true;
-    // }
+        return true;
+    }
     //---------------------------------------------------------------------
     bool clearDeviceSettings(sfeIoTNodeLoRaWAN *theApp)
     {
@@ -100,8 +82,8 @@ class sfeNLCommands
     // //---------------------------------------------------------------------
     bool restartDevice(sfeIoTNodeLoRaWAN *theApp)
     {
-        // if (theApp)
-        //     theApp->_sysUpdate.restartDevicePrompt();
+        if (theApp)
+            theApp->_sysSystem.restartDevicePrompt();
 
         return true;
     }
@@ -109,8 +91,8 @@ class sfeNLCommands
     bool restartDeviceForced(sfeIoTNodeLoRaWAN *theApp)
     {
 
-        // if (theApp)
-        //     theApp->_sysUpdate.restartDevice();
+        if (theApp)
+            theApp->_sysSystem.restartDevice();
 
         return true;
     }
@@ -406,9 +388,8 @@ class sfeNLCommands
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
-        // {"factory-reset", &sfeNLCommands::factoryResetDevice},
-        // {"reset-device", &sfeNLCommands::resetDevice},
-        // {"reset-device-forced", &sfeNLCommands::resetDeviceForced},
+        {"reset-device", &sfeNLCommands::resetDevice},
+        {"reset-device-forced", &sfeNLCommands::resetDeviceForced},
         {"clear-settings", &sfeNLCommands::clearDeviceSettings},
         {"clear-settings-forced", &sfeNLCommands::clearDeviceSettingsForced},
         {"restart", &sfeNLCommands::restartDevice},
