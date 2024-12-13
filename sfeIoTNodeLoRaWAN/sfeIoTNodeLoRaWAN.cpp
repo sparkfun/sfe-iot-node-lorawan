@@ -25,6 +25,9 @@ static const char *kProductName = "SparkFun IoT Node LoRaWAN";
 // delay used in loop during startup
 const uint32_t kStartupLoopDelayMS = 70;
 
+// Button event increment
+#define kButtonPressedIncrement 5
+
 //---------------------------------------------------------------------------
 // LoRaWAN Receive message ids
 //
@@ -318,6 +321,13 @@ bool sfeIoTNodeLoRaWAN::onSetup()
 
     flux_add(_boardButton);
 
+    // We want an event every 5 seconds
+    _boardButton.setPressIncrement(kButtonPressedIncrement);
+
+    // Button events we're listening on
+    _boardButton.on_buttonRelease.call(this, &sfeIoTNodeLoRaWAN::onButtonReleased);
+    _boardButton.on_buttonPressed.call(this, &sfeIoTNodeLoRaWAN::onButtonPressed);
+
     return true;
 }
 //---------------------------------------------------------------------------
@@ -545,6 +555,45 @@ void sfeIoTNodeLoRaWAN::onErrorMessage(uint8_t msgType)
         sfeLED.flash(sfeLED.Red);
     else if (msgType == (uint8_t)flxLogWarning)
         sfeLED.flash(sfeLED.Yellow);
+}
+
+//---------------------------------------------------------------------------
+// Button Events - general handler
+//---------------------------------------------------------------------------
+//
+// CAlled when the button is pressed and an increment time passed
+void sfeIoTNodeLoRaWAN::onButtonPressed(uint32_t increment)
+{
+
+    // we need LED on for visual feedback...
+    sfeLED.setDisabled(false);
+
+    if (increment == 1)
+        sfeLED.blink(sfeLED.Yellow, kLEDFlashSlow);
+
+    else if (increment == 2)
+        sfeLED.blink(kLEDFlashMedium);
+
+    else if (increment == 3)
+        sfeLED.blink(kLEDFlashFast);
+
+    else if (increment >= 4)
+    {
+        sfeLED.stop();
+
+        sfeLED.on(sfeLED.Red);
+        delay(500);
+        sfeLED.off();
+
+        // Reset time !
+        _sysSystem.resetDevice();
+    }
+}
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::onButtonReleased(uint32_t increment)
+{
+    if (increment > 0)
+        sfeLED.off();
 }
 // ---------------------------------------------------------------------------
 // Log event

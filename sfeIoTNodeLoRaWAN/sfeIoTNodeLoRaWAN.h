@@ -182,6 +182,10 @@ class sfeIoTNodeLoRaWAN : public flxApplication
 
     void getStartupProperties(uint32_t &baudRate, uint32_t &startupDelay);
 
+    // Board button callbacks
+    void onButtonPressed(uint32_t);
+    void onButtonReleased(uint32_t);
+
     // battery level checks
     void checkBatteryLevels(void);
 
@@ -209,8 +213,6 @@ class sfeIoTNodeLoRaWAN : public flxApplication
 
     // Our system Control
     flxSystem _sysSystem;
-    // for our button events of the board
-    // sfeDLButton _boardButton;
 
     // Fuel gauge
     flxDevMAX17048 *_fuelGauge;
