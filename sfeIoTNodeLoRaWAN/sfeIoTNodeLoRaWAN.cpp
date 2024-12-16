@@ -297,9 +297,6 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // for system reset event
     flxRegisterEventCB(flxEvent::kOnSystemReset, this, &sfeIoTNodeLoRaWAN::onSystemResetEvent);
 
-    // Set the default timer interval, before restore of settings
-    _timer.interval = kDefaultLogInterval;
-
     // was device auto load disabled by startup commands?
     if (inOpMode(kAppOpStartNoAutoload))
         flux.setAutoload(false);
@@ -355,6 +352,8 @@ void sfeIoTNodeLoRaWAN::onRestore()
 {
     // flxLog_I("in onRestore()");
     setAppClassID(kDLAppClassNameID, (char *)kAppClassPrefix);
+    // Set the default timer interval, before restore of settings
+    _timer.interval = kDefaultLogInterval;
 }
 
 //---------------------------------------------------------------------------
