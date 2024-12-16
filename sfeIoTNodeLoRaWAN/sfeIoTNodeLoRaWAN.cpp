@@ -128,6 +128,7 @@ void sfeIoTNodeLoRaWAN::onInitStartupCommands(uint32_t delaySecs)
         const char *name;
     } startupCommand_t;
     startupCommand_t commands[] = {{'n', kAppOpNone, "normal-startup"},
+                                   {'v', kAppOpStartVerboseOutput, "verbose-output-enabled"},
                                    {'a', kAppOpStartNoAutoload, "device-auto-load-disabled"},
                                    {'l', kAppOpStartListDevices, "i2c-driver-listing-enabled"},
                                    {'s', kAppOpStartNoSettings, "settings-restore-disabled"}};
@@ -304,14 +305,14 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // was settings restore disabled by startup commands?
     if (inOpMode(kAppOpStartNoSettings))
         flux.setLoadSettings(false);
-    ;
 
-    // was wifi startup disabled by startup commands?
+    // Verbose output
+    if (inOpMode(kAppOpStartVerboseOutput))
+        set_verbose(true);
+
+    // was list device divers set by startup commands?
     if (inOpMode(kAppOpStartListDevices))
         flux.dumpDeviceAutoLoadTable();
-
-    // Serial UX - pass to our update routine
-    // _sysUpdate.setSerialSettings(_serialSettings);
 
     // Button events we're listening on
     _boardButton.on_momentaryPress.call(this, &sfeIoTNodeLoRaWAN::onLogEvent);
@@ -719,9 +720,11 @@ void sfeIoTNodeLoRaWAN::set_termBaudRate(uint32_t newRate)
 //---------------------------------------------------------------------------
 void sfeIoTNodeLoRaWAN::set_verbose(bool enable)
 {
+
+    // If disable, but we are in startup mode that enables verbose, don't set disable
     if (enable)
         flxSetLoggingVerbose();
-    else
+    else if (!inOpMode(kAppOpStartVerboseOutput))
         flxSetLoggingInfo();
 }
 bool sfeIoTNodeLoRaWAN::get_verbose(void)

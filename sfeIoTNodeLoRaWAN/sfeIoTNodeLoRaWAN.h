@@ -52,8 +52,10 @@ const uint32_t kBatteryCheckInterval = 90000;
 #define kAppOpStartNoAutoload (1 << 3)
 #define kAppOpStartListDevices (1 << 4)
 #define kAppOpStartNoSettings (1 << 5)
+#define kAppOpStartVerboseOutput (1 << 6)
 
-#define kAppOpStartAllFlags (kAppOpStartNoAutoload | kAppOpStartListDevices | kAppOpStartNoSettings)
+#define kAppOpStartAllFlags                                                                                            \
+    (kAppOpStartNoAutoload | kAppOpStartListDevices | kAppOpStartNoSettings | kAppOpStartVerboseOutput)
 
 #define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
 #define setOpMode(__mode__) _opFlags |= __mode__
