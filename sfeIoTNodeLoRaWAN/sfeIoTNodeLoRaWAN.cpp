@@ -745,6 +745,7 @@ bool sfeIoTNodeLoRaWAN::loop()
         if (chIn == '!')
         {
             Serial.write('!');
+            Serial.flush();
             sfeNLCommands cmdProcessor;
             bool status = cmdProcessor.processCommand(this);
         }
