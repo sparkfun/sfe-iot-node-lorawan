@@ -9,6 +9,7 @@
  */
 
 #include "flxLoRaWANDigi.h"
+#include <Flux/flxCoreEvent.h>
 #include <Flux/flxNetwork.h>
 #include <Flux/flxSerial.h>
 #include <Flux/flxSettings.h>
@@ -19,9 +20,6 @@
 #include <xbee_lr.h>
 #define kXBeeLRSerial Serial1
 #define kXBeeLRBaud 9600
-
-// Our Development App EUI
-#define kDevelopmentAppEUI "37D56A3F6CDCF0A5"
 
 // Define a connection iteration value - exceed this, skip the connection
 
@@ -130,10 +128,57 @@ void flxLoRaWANDigi::set_isEnabled(bool bEnabled)
         disconnect();
 }
 
+void flxLoRaWANDigi::update_system_config(void)
+{
+    // Mark this module as not configured. This will force a reconfiguration at boot.
+    _moduleConfigured = false;
+
+    // Save our settings
+    flxSettings.save(this, true);
+
+    // Indicate that the system needs restart
+    flxSendEvent(flxEvent::kSystemNeedsRestart);
+}
 //----------------------------------------------------------------
 bool flxLoRaWANDigi::get_isEnabled(void)
 {
     return _isEnabled;
+}
+
+void flxLoRaWANDigi::set_app_eui(std::string appEUI)
+{
+    _app_eui = appEUI;
+
+    // Indicate that the system needs restart
+    update_system_config();
+}
+std::string flxLoRaWANDigi::get_app_eui(void)
+{
+    return _app_eui;
+}
+
+void flxLoRaWANDigi::set_app_key(std::string appKey)
+{
+    _app_key = appKey;
+
+    // Indicate that the system needs restart
+    update_system_config();
+}
+std::string flxLoRaWANDigi::get_app_key(void)
+{
+    return _app_key;
+}
+
+void flxLoRaWANDigi::set_network_key(std::string networkKey)
+{
+    _network_key = networkKey;
+
+    // Indicate that the system needs restart
+    update_system_config();
+}
+std::string flxLoRaWANDigi::get_network_key(void)
+{
+    return _network_key;
 }
 
 //----------------------------------------------------------------
@@ -151,16 +196,20 @@ bool flxLoRaWANDigi::configureModule(void)
     if (appEUI().size() > 0)
     {
         if (!_pXBeeLR->setLoRaWANAppEUI(appEUI().c_str()))
-            flxLog_D(F("%s: Failed to set the App EUI"), name());
+            flxLog_N_(F(". failed ."));
+        else
+            flxLog_N_(F(". success ."));
     }
     flxLog_N_(F("."));
 
     // App Key
     if (appKey().size() > 0)
     {
-        flxLog_I(F("Setting App Key: %s"), appKey().c_str());
+        flxLog_N_(F(". setting App Key .."));
         if (!_pXBeeLR->setLoRaWANAppKey(appKey().c_str()))
-            flxLog_D(F("%s: Failed to set the App Key"), name());
+            flxLog_N_(F(". failed ."));
+        else
+            flxLog_N_(F(". success ."));
     }
 
     flxLog_N_(F("."));
@@ -168,8 +217,12 @@ bool flxLoRaWANDigi::configureModule(void)
     // Network Key
     if (networkKey().size() > 0)
     {
+        flxLog_N_(F(". setting Network Key .."));
         if (!_pXBeeLR->setLoRaWANNwkKey(networkKey().c_str()))
-            flxLog_W(F("%s: Failed to set the Network Key"), name());
+            flxLog_N_(F(". failed ."));
+        else
+            flxLog_N_(F(". success ."));
+        ;
     }
     flxLog_N_(F("."));
 
@@ -376,12 +429,6 @@ bool flxLoRaWANDigi::initialize(void)
 
     // Our process messages job
     _processJob.setup("LoRaWAN Process", kProcessMessagesTime, this, &flxLoRaWANDigi::processMessagesCB);
-
-#if defined(FLX_SPARKFUN_LORAWAN_APP_EUI)
-    appEUI = FLX_SPARKFUN_LORAWAN_APP_EUI;
-#else
-    appEUI = kDevelopmentAppEUI;
-#endif
 
     // Do we connect now?
 

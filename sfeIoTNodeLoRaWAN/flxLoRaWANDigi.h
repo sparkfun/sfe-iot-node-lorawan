@@ -22,6 +22,9 @@ flxDefineEventID(kLoRaWANSendStatus);
 // Event for received messages
 flxDefineEventID(kLoRaWANReceivedMessage);
 
+// Our Development App EUI
+#define kDevelopmentAppEUI "37D56A3F6CDCF0A5"
+
 class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 {
   private:
@@ -30,14 +33,36 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     void reset_module(void);
 
+    void set_app_eui(std::string appEUI);
+    std::string get_app_eui(void);
+    std::string _app_eui;
+
+    void set_app_key(std::string appKey);
+    std::string get_app_key(void);
+
+    std::string _app_key;
+
+    void set_network_key(std::string networkKey);
+    std::string get_network_key(void);
+    std::string _network_key;
+
+    void update_system_config(void);
+
   public:
     // ctor
     flxLoRaWANDigi()
-        : _wasConnected{false}, _isEnabled{true}, _delayedStartup{false}, _moduleInitialized{false}, _pXBeeLR{nullptr},
-          _devEUI{'\0'}, _currentOffset{0}
+        : _app_key{""}, _network_key{""}, _wasConnected{false}, _isEnabled{true}, _delayedStartup{false},
+          _moduleInitialized{false}, _pXBeeLR{nullptr}, _devEUI{'\0'}, _currentOffset{0}
     {
         setName("LoRaWAN Network", "Digi LoRaWAN connection for the system");
         flux_add(this);
+
+        // default app EUI
+#if defined(FLX_SPARKFUN_LORAWAN_APP_EUI)
+        _app_eui = FLX_SPARKFUN_LORAWAN_APP_EUI;
+#else
+        _app_eui = kDevelopmentAppEUI;
+#endif
     }
 
     // dtor
@@ -52,9 +77,10 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     }
 
     // Properties
-    flxPropertyString<flxLoRaWANDigi> appEUI;
-    flxPropertySecureString<flxLoRaWANDigi> appKey;
-    flxPropertySecureString<flxLoRaWANDigi> networkKey;
+    flxPropertyRWString<flxLoRaWANDigi, &flxLoRaWANDigi::get_app_eui, &flxLoRaWANDigi::set_app_eui> appEUI;
+    flxPropertyRWSecureString<flxLoRaWANDigi, &flxLoRaWANDigi::get_app_key, &flxLoRaWANDigi::set_app_key> appKey;
+    flxPropertyRWSecureString<flxLoRaWANDigi, &flxLoRaWANDigi::get_network_key, &flxLoRaWANDigi::set_network_key>
+        networkKey;
 
     flxPropertyRWBool<flxLoRaWANDigi, &flxLoRaWANDigi::get_isEnabled, &flxLoRaWANDigi::set_isEnabled> enabled;
     flxPropertyHiddenBool<flxLoRaWANDigi> _moduleConfigured = {false};
