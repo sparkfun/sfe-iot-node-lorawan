@@ -188,6 +188,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     void onButtonPressed(uint32_t);
     void onButtonReleased(uint32_t);
 
+    // need a restart message
+    void onNeedsRestart(void);
+
     // battery level checks
     void checkBatteryLevels(void);
 

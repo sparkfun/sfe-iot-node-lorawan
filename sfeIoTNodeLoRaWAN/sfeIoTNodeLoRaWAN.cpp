@@ -298,6 +298,9 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // for system reset event
     flxRegisterEventCB(flxEvent::kOnSystemReset, this, &sfeIoTNodeLoRaWAN::onSystemResetEvent);
 
+    // for needs restart event
+    flxRegisterEventCB(flxEvent::kSystemNeedsRestart, this, &sfeIoTNodeLoRaWAN::onNeedsRestart);
+
     // was device auto load disabled by startup commands?
     if (inOpMode(kAppOpStartNoAutoload))
         flux.setAutoload(false);
@@ -426,6 +429,9 @@ bool sfeIoTNodeLoRaWAN::onStart()
     displayAppStatus(true);
 
     sfeLED.off();
+
+    // not in startup now.
+    clearOpMode(kAppOpStartup);
 
     return true;
 }
@@ -594,6 +600,16 @@ void sfeIoTNodeLoRaWAN::onButtonReleased(uint32_t increment)
 {
     if (increment > 0)
         sfeLED.off();
+}
+
+// need a restart message
+void sfeIoTNodeLoRaWAN::onNeedsRestart(void)
+{
+    if (inOpMode(kAppOpStartup))
+        return;
+
+    // set the need a restart flag
+    setOpMode(kAppOpPendingRestart);
 }
 // ---------------------------------------------------------------------------
 // Log event
