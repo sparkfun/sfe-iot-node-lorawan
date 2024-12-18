@@ -191,25 +191,41 @@ bool flxLoRaWANDigi::configureModule(void)
 
     // Now initialize the module
 
-    flxLog_N_("Setting App EUI: %s ..", appEUI().c_str());
     // App EUI
     if (appEUI().size() > 0)
     {
+        flxLog_N_("Setting App EUI: %s [", appEUI().c_str());
         if (!_pXBeeLR->setLoRaWANAppEUI(appEUI().c_str()))
-            flxLog_N_(F(". failed ."));
+        {
+            flxSerial.textToYellow();
+            flxLog_N_(F("failed"));
+        }
         else
-            flxLog_N_(F(". success ."));
+        {
+            flxSerial.textToGreen();
+            flxLog_N_(F("ok"));
+        }
+        flxSerial.textToNormal();
+        flxLog_N_(F("] "));
     }
     flxLog_N_(F("."));
 
     // App Key
     if (appKey().size() > 0)
     {
-        flxLog_N_(F(". setting App Key .."));
+        flxLog_N_(F(". setting App Key ["));
         if (!_pXBeeLR->setLoRaWANAppKey(appKey().c_str()))
-            flxLog_N_(F(". failed ."));
+        {
+            flxSerial.textToYellow();
+            flxLog_N_(F("failed"));
+        }
         else
-            flxLog_N_(F(". success ."));
+        {
+            flxSerial.textToGreen();
+            flxLog_N_(F("ok"));
+        }
+        flxSerial.textToNormal();
+        flxLog_N_(F("] "));
     }
 
     flxLog_N_(F("."));
@@ -217,12 +233,19 @@ bool flxLoRaWANDigi::configureModule(void)
     // Network Key
     if (networkKey().size() > 0)
     {
-        flxLog_N_(F(". setting Network Key .."));
+        flxLog_N_(F(". setting Network Key ["));
         if (!_pXBeeLR->setLoRaWANNwkKey(networkKey().c_str()))
-            flxLog_N_(F(". failed ."));
+        {
+            flxSerial.textToYellow();
+            flxLog_N_(F("failed"));
+        }
         else
-            flxLog_N_(F(". success ."));
-        ;
+        {
+            flxSerial.textToGreen();
+            flxLog_N_(F("ok"));
+        }
+        flxSerial.textToNormal();
+        flxLog_N_(F("] "));
     }
     flxLog_N_(F("."));
 
