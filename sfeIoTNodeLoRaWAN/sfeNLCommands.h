@@ -13,6 +13,7 @@
 #include <ArduinoJson.h>
 #include <Flux/flxCoreLog.h>
 
+#include <Flux/flxPlatform.h>
 #include <Flux/flxSerialField.h>
 #include <Flux/flxUtils.h>
 #include <time.h>
@@ -179,10 +180,10 @@ class sfeNLCommands
     bool heapStatus(sfeIoTNodeLoRaWAN *theApp)
     {
 
-        flxLog_I(F("Heap Status - Not Implemented"));
-        // // just dump out the current heap
-        // flxLog_I(F("System Heap - Total: %dB Free: %dB (%.1f%%)"), ESP.getHeapSize(), ESP.getFreeHeap(),
-        //          (float)ESP.getFreeHeap() / (float)ESP.getHeapSize() * 100.);
+        // just dump out the current heap
+        flxLog_I("System Heap - Total: %dB Free: %dB (%.1f%%)", flxPlatform::heap_size(), flxPlatform::heap_free(),
+                 (float)flxPlatform::heap_free() / (float)flxPlatform::heap_size() * 100.);
+
         return true;
     }
 
