@@ -157,18 +157,14 @@ class sfeNLCommands
         if (!theApp)
             return false;
 
-        flxLog_I(F("Save Settings - Not Implemented"));
+        // Just call save
+        bool status = flxSettings.save(&flux);
+        if (status)
+            flxLog_I(F("Saving System Settings."));
+        else
+            flxLog_E(F("Error saving settings"));
 
-        // // Just call save
-        // bool status = flxSettings.save(&flux);
-        // if (status)
-        //     flxLog_I(F("Saving System Settings."));
-        // else
-        //     flxLog_E(F("Error saving settings"));
-
-        // return status;
-
-        return true;
+        return status;
     }
     //---------------------------------------------------------------------
     ///
