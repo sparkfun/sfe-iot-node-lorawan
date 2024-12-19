@@ -84,6 +84,8 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     if (_loraWANConnection.isConnected())
     {
         flxLog__(logLevel, "%cDevice EUI: %s", pre_ch, _loraWANConnection.deviceEUI());
+        flxLog__(logLevel, "%cOperating Class: '%s'", pre_ch,
+                 _loraWANConnection.kLoRaWANClasses[_loraWANConnection.loraWANClass()]);
     }
     flxLog_N("");
     if (!useInfo)
@@ -167,6 +169,7 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     else
         flxLog_N("%.2f (ms)", _logger.getLogRate());
 
+    flxLog_N("");
     flxLog__(logLevel, "%cJSON Buffer - Size: %dB Max Used: %dB", pre_ch, jsonBufferSize(), _fmtJSON.getMaxSizeUsed());
     flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog_N("%c    Baud Rate: %d", pre_ch, serialBaudRate());

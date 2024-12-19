@@ -130,6 +130,10 @@ void flxLoRaWANDigi::set_isEnabled(bool bEnabled)
 
 void flxLoRaWANDigi::update_system_config(void)
 {
+    // have we setup the system yet -- if not, skip this
+    if (_pXBeeLR == nullptr)
+        return;
+
     // Mark this module as not configured. This will force a reconfiguration at boot.
     _moduleConfigured = false;
 
@@ -181,6 +185,36 @@ std::string flxLoRaWANDigi::get_network_key(void)
     return _network_key;
 }
 
+void flxLoRaWANDigi::set_lora_class(uint8_t loraClass)
+{
+    if (_lora_class == loraClass)
+        return;
+
+    _lora_class = loraClass;
+
+    // push the update to the module
+    (void)setupLoRaWANClass();
+}
+
+uint8_t flxLoRaWANDigi::get_lora_class(void)
+{
+    return _lora_class;
+}
+//----------------------------------------------------------------
+// method to capture setting the module class
+bool flxLoRaWANDigi::setupLoRaWANClass(void)
+{
+    if (!_isEnabled || _pXBeeLR == nullptr)
+        return false;
+
+    bool status = _pXBeeLR->setLoRaWANClass(kLoRaWANClasses[_lora_class][0]);
+    if (!status)
+        flxLog_W(F("%s: Error setting the LoRaWAN Class to `%s`"), name(), kLoRaWANClasses[_lora_class]);
+    else
+        flxLog_D(F("%s: Set the LoRaWAN Class to `%s`"), name(), kLoRaWANClasses[_lora_class]);
+
+    return status;
+}
 //----------------------------------------------------------------
 // Config the settings on the module. These settings are persistent, so only need to set once.
 
@@ -374,8 +408,7 @@ bool flxLoRaWANDigi::connect(void)
         return false;
     }
     // We are connected -- make sure the class is set.
-    if (!_pXBeeLR->setLoRaWANClass('C'))
-        flxLog_D(F("%s: Failed to set the LoRaWAN Class"), name());
+    (void)setupLoRaWANClass();
 
     flxSerial.textToGreen();
     flxLog_N(F("Connected!"));
@@ -435,6 +468,8 @@ bool flxLoRaWANDigi::initialize(void)
     flxRegister(appEUI, "Application EUI", "The LoRaWAN Application EUI");
     flxRegister(appKey, "Application Key", "The LoRaWAN Application Key");
     flxRegister(networkKey, "Network Key", "The LoRaWAN Network Key");
+
+    flxRegister(loraWANClass, "LoRaWAN Class", "The LoRaWAN operating class");
 
     // our hidden module initialized property
     flxRegister(_moduleConfigured, "mod-config");

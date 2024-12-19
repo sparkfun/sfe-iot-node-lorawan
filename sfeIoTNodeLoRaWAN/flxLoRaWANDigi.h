@@ -48,11 +48,15 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     void update_system_config(void);
 
+    void set_lora_class(uint8_t);
+    uint8_t get_lora_class(void);
+    uint8_t _lora_class;
+
   public:
     // ctor
     flxLoRaWANDigi()
-        : _app_key{""}, _network_key{""}, _wasConnected{false}, _isEnabled{true}, _delayedStartup{false},
-          _moduleInitialized{false}, _pXBeeLR{nullptr}, _devEUI{'\0'}, _currentOffset{0}
+        : _app_key{""}, _network_key{""}, _lora_class{2}, _wasConnected{false}, _isEnabled{true},
+          _delayedStartup{false}, _moduleInitialized{false}, _pXBeeLR{nullptr}, _devEUI{'\0'}, _currentOffset{0}
     {
         setName("LoRaWAN Network", "Digi LoRaWAN connection for the system");
         flux_add(this);
@@ -83,6 +87,9 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
         networkKey;
 
     flxPropertyRWBool<flxLoRaWANDigi, &flxLoRaWANDigi::get_isEnabled, &flxLoRaWANDigi::set_isEnabled> enabled;
+
+    flxPropertyRWUInt8<flxLoRaWANDigi, &flxLoRaWANDigi::get_lora_class, &flxLoRaWANDigi::set_lora_class> loraWANClass =
+        {2, {{kLoRaWANClasses[0], 0}, {kLoRaWANClasses[1], 1}, {kLoRaWANClasses[2], 2}}};
     flxPropertyHiddenBool<flxLoRaWANDigi> _moduleConfigured = {false};
 
     // input params/functions
@@ -121,12 +128,15 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     bool sendData(uint8_t tag, const uint8_t *data, size_t len);
     bool flushBuffer(void);
 
+    static constexpr const char *kLoRaWANClasses[3] = {"A", "B", "C"};
+
   private:
     void connectionStatusCB(void);
     bool setupModule(void);
     bool configureModule(void);
     void reconnectJobCB(void);
     void processMessagesCB(void);
+    bool setupLoRaWANClass(void);
 
     // send our payload buffer
     bool sendPayload(const uint8_t *payload, size_t len);
