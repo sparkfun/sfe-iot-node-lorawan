@@ -81,12 +81,12 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     }
 
     flxLog__(logLevel, "%cStatus: %s", pre_ch, _loraWANConnection.isConnected() ? "Connected" : "Disconnected");
-    if (_loraWANConnection.isConnected())
-    {
-        flxLog__(logLevel, "%cDevice EUI: %s", pre_ch, _loraWANConnection.deviceEUI());
-        flxLog__(logLevel, "%cOperating Class: '%s'", pre_ch,
-                 _loraWANConnection.kLoRaWANClasses[_loraWANConnection.loraWANClass()]);
-    }
+
+    flxLog__(logLevel, "%cDevice EUI: %s", pre_ch, _loraWANConnection.deviceEUI());
+    flxLog__(logLevel, "%cApplication EUI: %s", pre_ch, _loraWANConnection.appEUI().c_str());
+    flxLog__(logLevel, "%cOperating Class: '%s'", pre_ch,
+             _loraWANConnection.kLoRaWANClasses[_loraWANConnection.loraWANClass()]);
+
     flxLog_N("");
     if (!useInfo)
     {
