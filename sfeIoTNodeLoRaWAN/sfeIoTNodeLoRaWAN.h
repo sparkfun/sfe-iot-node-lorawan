@@ -194,6 +194,10 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     // battery level checks
     void checkBatteryLevels(void);
 
+    // setup routines
+    bool setupTime();
+    void setupENS160(void);
+
     // Our LoRaWAN network/connection object
     flxLoRaWANDigi _loraWANConnection;
     flxLoRaWANLogger _loraWANLogger;
