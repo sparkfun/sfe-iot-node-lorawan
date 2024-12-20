@@ -402,6 +402,13 @@ bool sfeIoTNodeLoRaWAN::onStart()
         }
     }
 
+    // setup the ENS160
+    setupENS160();
+
+    // Check time devices
+    if (!setupTime())
+        flxLog_W(F("Time reference setup failed."));
+
     flxLog_N("");
     // Do we have a fuel gauge ...
     if (_fuelGauge)
@@ -428,10 +435,11 @@ bool sfeIoTNodeLoRaWAN::onStart()
     // Display detailed app info
     displayAppStatus(true);
 
-    sfeLED.off();
-
-    // not in startup now.
+    // not in startup now. Clear startup flags
     clearOpMode(kAppOpStartup);
+    clearOpMode(kAppOpStartAllFlags);
+
+    sfeLED.off();
 
     return true;
 }
