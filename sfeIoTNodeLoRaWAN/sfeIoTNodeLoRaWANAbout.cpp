@@ -87,6 +87,7 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cApplication EUI: %s", pre_ch, _loraWANConnection.appEUI().c_str());
     flxLog__(logLevel, "%cOperating Class: '%s'", pre_ch,
              _loraWANConnection.kLoRaWANClasses[_loraWANConnection.loraWANClass()]);
+    flxLog__(logLevel, "%cOperating Region: '%s'", pre_ch, _loraWANConnection.getRegionName());
 
     flxLog_N("");
     if (!useInfo)
