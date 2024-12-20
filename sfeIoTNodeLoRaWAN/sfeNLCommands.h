@@ -399,59 +399,7 @@ class sfeNLCommands
     }
     //---------------------------------------------------------------------
     ///
-    /// @brief output lora device EUI
-    ///
-    /// @param theApp Pointer to the DataLogger App
-    /// @retval bool indicates success (true) or failure (!true)
-    ///
-    bool loraDeviceEUI(sfeIoTNodeLoRaWAN *theApp)
-    {
-
-        if (!theApp)
-            return false;
-
-        flxLog_I("Device EUI: %s", theApp->_loraWANConnection.deviceEUI());
-
-        return true;
-    }
-    //---------------------------------------------------------------------
-    ///
-    /// @brief output lora application EUI
-    ///
-    /// @param theApp Pointer to the DataLogger App
-    /// @retval bool indicates success (true) or failure (!true)
-    ///
-    bool loraApplicationEUI(sfeIoTNodeLoRaWAN *theApp)
-    {
-
-        if (!theApp)
-            return false;
-
-        flxLog_I("Application EUI: %s", theApp->_loraWANConnection.appEUI().c_str());
-
-        return true;
-    }
-    //---------------------------------------------------------------------
-    ///
-    /// @brief output lora op class
-    ///
-    /// @param theApp Pointer to the DataLogger App
-    /// @retval bool indicates success (true) or failure (!true)
-    ///
-    bool loraOpClass(sfeIoTNodeLoRaWAN *theApp)
-    {
-
-        if (!theApp)
-            return false;
-
-        flxLog_I("Operating Class: '%s'",
-                 theApp->_loraWANConnection.kLoRaWANClasses[theApp->_loraWANConnection.loraWANClass()]);
-
-        return true;
-    }
-    //---------------------------------------------------------------------
-    ///
-    /// @brief output lora connection status
+    /// @brief output lora status/stats
     ///
     /// @param theApp Pointer to the DataLogger App
     /// @retval bool indicates success (true) or failure (!true)
@@ -461,9 +409,12 @@ class sfeNLCommands
 
         if (!theApp)
             return false;
-
         flxLog_I("LoRaWAN Status: '%s'", theApp->_loraWANConnection.isConnected() ? "Connected" : "Disconnected");
-
+        flxLog_I("Device EUI: %s", theApp->_loraWANConnection.deviceEUI());
+        flxLog_I("Application EUI: %s", theApp->_loraWANConnection.appEUI().c_str());
+        flxLog_I("Operating Class: '%s'",
+                 theApp->_loraWANConnection.kLoRaWANClasses[theApp->_loraWANConnection.loraWANClass()]);
+        flxLog_I("Operating Region: '%s'", theApp->_loraWANConnection.getRegionName());
         return true;
     }
 
@@ -487,9 +438,6 @@ class sfeNLCommands
         {"systime", &sfeNLCommands::outputSystemTime},
         {"uptime", &sfeNLCommands::outputUpTime},
         {"verbose", &sfeNLCommands::toggleVerboseOutput},
-        {"lora-device-eui", &sfeNLCommands::loraDeviceEUI},
-        {"lora-app-eui", &sfeNLCommands::loraApplicationEUI},
-        {"lora-op-class", &sfeNLCommands::loraOpClass},
         {"lora-status", &sfeNLCommands::loraStatus},
         {"device-id", &sfeNLCommands::printDeviceID},
         {"version", &sfeNLCommands::printVersion},
