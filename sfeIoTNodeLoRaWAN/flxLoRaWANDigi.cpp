@@ -216,6 +216,33 @@ bool flxLoRaWANDigi::setupLoRaWANClass(void)
     return status;
 }
 //----------------------------------------------------------------
+// Region routines
+//----------------------------------------------------------------
+
+void flxLoRaWANDigi::set_lora_region(uint8_t loraRegion)
+{
+    if (_lora_region == loraRegion)
+        return;
+
+    _lora_region = loraRegion;
+
+    update_system_config(); // we will need to restart the system to apply this change
+}
+
+uint8_t flxLoRaWANDigi::get_lora_region(void)
+{
+    return _lora_region;
+}
+const char *flxLoRaWANDigi::getRegionName(void)
+{
+    for (int i = 0; i < sizeof(kLoRaWANRegionIDs) / sizeof(kLoRaWANRegionIDs[0]); i++)
+    {
+        if (kLoRaWANRegionIDs[i] == _lora_region)
+            return kLoRaWANRegionNames[i];
+    }
+    return "Unknown";
+}
+//----------------------------------------------------------------
 // Config the settings on the module. These settings are persistent, so only need to set once.
 
 bool flxLoRaWANDigi::configureModule(void)
@@ -351,6 +378,14 @@ bool flxLoRaWANDigi::setupModule(void)
         return false;
     }
 
+    // // Set the region
+    // if (!_pXBeeLR->setLoRaWANRegion(_lora_region))
+    //     flxLog_W(F("%s: Error setting the LoRaWAN Region to `%s`"), name(), getRegionName());
+    // else
+    //     flxLog_D(F("%s: Set the LoRaWAN Region to `%s`"), name(), getRegionName());
+
+    // flxLog_N_(F("."));
+
     // Do we need to configure the module?
     if (_moduleConfigured() == false)
     {
@@ -470,6 +505,8 @@ bool flxLoRaWANDigi::initialize(void)
     flxRegister(networkKey, "Network Key", "The LoRaWAN Network Key");
 
     flxRegister(loraWANClass, "LoRaWAN Class", "The LoRaWAN operating class");
+
+    flxRegister(loraWANRegion, "LoRaWAN Region", "The LoRaWAN operating region");
 
     // our hidden module initialized property
     flxRegister(_moduleConfigured, "mod-config");

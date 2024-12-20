@@ -52,11 +52,16 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     uint8_t get_lora_class(void);
     uint8_t _lora_class;
 
+    void set_lora_region(uint8_t);
+    uint8_t get_lora_region(void);
+    uint8_t _lora_region;
+
   public:
     // ctor
     flxLoRaWANDigi()
-        : _app_key{""}, _network_key{""}, _lora_class{2}, _wasConnected{false}, _isEnabled{true},
-          _delayedStartup{false}, _moduleInitialized{false}, _pXBeeLR{nullptr}, _devEUI{'\0'}, _currentOffset{0}
+        : _app_key{""}, _network_key{""}, _lora_class{2}, _lora_region{kLoRaWANRegionIDs[0]}, _wasConnected{false},
+          _isEnabled{true}, _delayedStartup{false}, _moduleInitialized{false}, _pXBeeLR{nullptr}, _devEUI{'\0'},
+          _currentOffset{0}
     {
         setName("LoRaWAN Network", "Digi LoRaWAN connection for the system");
         flux_add(this);
@@ -90,6 +95,12 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     flxPropertyRWUInt8<flxLoRaWANDigi, &flxLoRaWANDigi::get_lora_class, &flxLoRaWANDigi::set_lora_class> loraWANClass =
         {2, {{kLoRaWANClasses[0], 0}, {kLoRaWANClasses[1], 1}, {kLoRaWANClasses[2], 2}}};
+
+    flxPropertyRWUInt8<flxLoRaWANDigi, &flxLoRaWANDigi::get_lora_region, &flxLoRaWANDigi::set_lora_region>
+        loraWANRegion = {
+            kLoRaWANRegionIDs[0],
+            {{kLoRaWANRegionNames[0], kLoRaWANRegionIDs[0]}, {kLoRaWANRegionNames[1], kLoRaWANRegionIDs[1]}}};
+
     flxPropertyHiddenBool<flxLoRaWANDigi> _moduleConfigured = {false};
 
     // input params/functions
@@ -129,6 +140,10 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     bool flushBuffer(void);
 
     static constexpr const char *kLoRaWANClasses[3] = {"A", "B", "C"};
+    static constexpr const char *kLoRaWANRegionNames[2] = {"US915", "EU868"};
+    static constexpr uint8_t kLoRaWANRegionIDs[2] = {8, 5};
+
+    const char *getRegionName(void);
 
   private:
     void connectionStatusCB(void);
