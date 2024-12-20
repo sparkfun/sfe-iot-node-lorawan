@@ -441,6 +441,8 @@ bool sfeIoTNodeLoRaWAN::onStart()
 
     sfeLED.off();
 
+    if (_loraWANConnection.isConnected())
+        _logger.logObservation();
     return true;
 }
 
