@@ -26,7 +26,7 @@
 #define kMaxConnectionTries 3
 
 // How often is the connection status checked ... in MS
-const uint16_t kLoRaWANUpdateHandlerTimeMS = 15000;
+const uint32_t kLoRaWANUpdateHandlerTimeMS = 120000;
 
 // Define times (in ms) for the reconnected job
 const uint32_t kReconnectInitialTime = 30000;
@@ -34,7 +34,7 @@ const uint32_t kReconnectInitialTime = 30000;
 const uint32_t kReconnectMaxTime = 3600000;
 
 // For the process messages job - in ms.
-const uint32_t kProcessMessagesTime = 2000;
+const uint32_t kProcessMessagesTime = 4000;
 //----------------------------------------------------------------
 // Callbacks for the XBee LR module - these are static functions
 //
@@ -74,22 +74,31 @@ static void OnSendCallback(void *data)
     {
         if (packet->status == 0)
         {
-            flxLog_V_(F("[LoRaWAN][OnSendCallback] "));
-
+            // this is a continuation from the send verbose message
+            flxLog_N_("[");
+            flxSerial.textToGreen();
+            flxLog_N_(F("sent"));
+            flxSerial.textToNormal();
+            flxLog_N_(F("] Frame ID: 0x%X "), packet->frameId);
             if (packet->payloadSize > 0)
             {
-                flxLog_N_(F("Packet: {"));
+                flxLog_N_("{");
+
                 for (int i = 0; i < packet->payloadSize; i++)
                     flxLog_N_(F("0x%02X "), packet->payload[i]);
-                flxLog_N_(F("}"));
-            }
 
-            flxLog_N(F("Ack: %u  Port: %u  RSSI: %d  SNR: %d  Downlink Counter: %u"), packet->ack, packet->port,
-                     packet->rssi, packet->snr, packet->counter);
+                flxLog_N_(F(" } Ack: %u  Port: %u  RSSI: %d  SNR: %d  Downlink Counter: %u"), packet->ack, packet->port,
+                          packet->rssi, packet->snr, packet->counter);
+            }
+            flxLog_N(F(""));
         }
         else
         {
-            flxLog_W_(F("[LoRaWAN] Data send failed. Frame ID: 0x%X Reason: "), packet->frameId);
+            flxLog_N_("[");
+            flxSerial.textToRed();
+            flxLog_N_(F("failed"));
+            flxSerial.textToNormal();
+            flxLog_N_(F("] Frame ID: 0x%X Reason: "), packet->frameId);
 
             switch (packet->status)
             {
@@ -100,7 +109,7 @@ static void OnSendCallback(void *data)
                 flxLog_N(F("Not Connected"));
                 break;
             default:
-                flxLog_N_(F("code 0x%X"), packet->status);
+                flxLog_N(F("code 0x%X"), packet->status);
                 break;
             }
         }
@@ -589,7 +598,7 @@ bool flxLoRaWANDigi::sendPayload(const uint8_t *payload, size_t len)
         {
             flxLog_N_(F("%02X"), payload[i]);
         }
-        flxLog_N("");
+        flxLog_N_(" - ");
     }
     XBeeLRPacket_t packet;
     packet.payload = (uint8_t *)payload;
