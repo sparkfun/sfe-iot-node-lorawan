@@ -443,7 +443,7 @@ bool sfeIoTNodeLoRaWAN::onStart()
 
     // trigger a log event if we are connected
     if (_loraWANConnection.isConnected())
-        _timer.on_interval.emit();
+        _timer.trigger();
     return true;
 }
 
