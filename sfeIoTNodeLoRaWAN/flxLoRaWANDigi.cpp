@@ -72,27 +72,32 @@ static void OnSendCallback(void *data)
 
     if (flxIsLoggingVerbose())
     {
-        if (packet->status == 0 && packet->payloadSize > 0)
+        if (packet->status == 0)
         {
-            flxLog_V_(F("[LoRaWAN]Sent Packet: {"));
+            flxLog_V_(F("[LoRaWAN][OnSendCallback] "));
 
-            for (int i = 0; i < packet->payloadSize; i++)
-                flxLog_N_(F("0x%02X "), packet->payload[i]);
+            if (packet->payloadSize > 0)
+            {
+                flxLog_N_(F("Packet: {"));
+                for (int i = 0; i < packet->payloadSize; i++)
+                    flxLog_N_(F("0x%02X "), packet->payload[i]);
+                flxLog_N_(F("}"));
+            }
 
-            flxLog_N(F("}  Ack: %u  Port: %u  RSSI: %d  SNR: %d  Downlink Counter: %u"), packet->ack, packet->port,
+            flxLog_N(F("Ack: %u  Port: %u  RSSI: %d  SNR: %d  Downlink Counter: %u"), packet->ack, packet->port,
                      packet->rssi, packet->snr, packet->counter);
         }
-        else if (packet->status != 0)
+        else
         {
-
             flxLog_W_(F("[LoRaWAN] Data send failed. Frame ID: 0x%X Reason: "), packet->frameId);
+
             switch (packet->status)
             {
             case 0x01:
                 flxLog_N(F("ACK Failed"));
                 break;
             case 0x022:
-                flxLog_N(F("Not Connected)"));
+                flxLog_N(F("Not Connected"));
                 break;
             default:
                 flxLog_N_(F("code 0x%X"), packet->status);
