@@ -435,6 +435,12 @@ bool sfeIoTNodeLoRaWAN::onStart()
     // Display detailed app info
     displayAppStatus(true);
 
+    flxLog_N("");
+    flxSerial.textToWhite();
+    flxLog_N_("Startup Complete");
+    flxSerial.textToNormal();
+    flxLog_N(" - Press any key to enter the settings menu, '!' to enter console commands - '!help' for commands");
+
     // not in startup now. Clear startup flags
     clearOpMode(kAppOpStartup);
     clearOpMode(kAppOpStartAllFlags);
@@ -771,6 +777,9 @@ bool sfeIoTNodeLoRaWAN::loop()
         uint8_t chIn = Serial.read();
         if (chIn == '!')
         {
+            flxSerial.textToWhite();
+            Serial.write('>');
+            flxSerial.textToNormal();
             Serial.write('!');
             Serial.flush();
             sfeNLCommands cmdProcessor;
