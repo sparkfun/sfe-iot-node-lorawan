@@ -807,6 +807,15 @@ bool flxLoRaWANDigi::sendData(uint8_t tag, const uint8_t *data, size_t len)
     _packetBuffer[_currentOffset++] = tag;
     memcpy(_packetBuffer + _currentOffset, data, len);
 
+    // If verbose, dump out the packed value.
+    if (flxIsLoggingVerbose())
+    {
+        flxLog_N_(F("0x"));
+        for (int i = 0; i < len; i++)
+            flxLog_N_(F("%02X"), data[i]);
+        flxLog_N(F(""));
+    }
+
     _currentOffset += len;
     return true;
 }

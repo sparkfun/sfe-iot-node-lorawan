@@ -48,6 +48,7 @@ void flxLoRaWANLogger::logObservation(void)
         // Do we know about this device  - if so call it's handler
         // TODO - this is a placeholder - we need to add a handler to the device
 
+        bool status = false;
         // now loop over the device's output parameters - if we know the type, call it's handler
         for (auto param : pDevice->getOutputParameters())
         {
@@ -65,48 +66,47 @@ void flxLoRaWANLogger::logObservation(void)
 
             // key off type and make the call to the
 
+            if (flxIsLoggingVerbose())
+            {
+                // dump out details for the parameter. Note - for packed value, this depends on
+                // verbose output from the packer.
+                flxLog_V_("LoRa Packing [%s::%s]  Type: %s   Value ID 0x%02X  Value: ", pDevice->name(), param->name(),
+                          flxGetTypeName(param->type()), pScalar->valueType());
+            }
             // okay, we have a value type we know, lets process it and send it to the network
-            // TODO -- there has to be a cleaner way to do this ....
+
             switch (param->type())
             {
             case flxTypeBool:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getBool()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getBool());
                 break;
             case flxTypeUInt8:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getUInt8()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getUInt8());
                 break;
             case flxTypeInt8:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getInt8()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getInt8());
                 break;
-
             case flxTypeUInt16:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getUInt16()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getUInt16());
                 break;
             case flxTypeInt16:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getInt16()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getInt16());
                 break;
             case flxTypeUInt32:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getUInt32()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getUInt32());
                 break;
             case flxTypeInt32:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getInt32()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getInt32());
                 break;
             case flxTypeFloat:
             case flxTypeDouble:
-                if (!_pLoRaWAN->sendData(pScalar->valueType(), pScalar->getFloat()))
-                    flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
+                status = _pLoRaWAN->sendData(pScalar->valueType(), pScalar->getFloat());
                 break;
             default:
                 break;
             }
-            // TODO - look for a handler for this parameter
+            if (!status)
+                flxLog_W(F("LoRaWAN send failed for parameter: %s"), pScalar->name());
         }
     }
     _pLoRaWAN->flushBuffer();
