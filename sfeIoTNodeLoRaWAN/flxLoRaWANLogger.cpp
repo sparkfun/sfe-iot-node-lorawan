@@ -70,7 +70,7 @@ void flxLoRaWANLogger::logObservation(void)
             {
                 // dump out details for the parameter. Note - for packed value, this depends on
                 // verbose output from the packer.
-                flxLog_V_("LoRa Packing [%s::%s]  Type: %s   Value ID 0x%02X  Value: ", pDevice->name(), param->name(),
+                flxLog_V_("LoRa Packing [%s::%s]  Type: %s  Value ID: 0x%02X Value: ", pDevice->name(), param->name(),
                           flxGetTypeName(param->type()), pScalar->valueType());
             }
             // okay, we have a value type we know, lets process it and send it to the network
