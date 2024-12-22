@@ -223,9 +223,9 @@ bool flxLoRaWANDigi::setupLoRaWANClass(void)
 
     bool status = _pXBeeLR->setLoRaWANClass(kLoRaWANClasses[_lora_class][0]);
     if (!status)
-        flxLog_W(F("%s: Error setting the LoRaWAN Class to `%s`"), name(), kLoRaWANClasses[_lora_class]);
+        flxLog_W(F("Failed setting the LoRaWAN Class to `%s`"), kLoRaWANClasses[_lora_class]);
     else
-        flxLog_D(F("%s: Set the LoRaWAN Class to `%s`"), name(), kLoRaWANClasses[_lora_class]);
+        flxLog_V_(F("LoRaWAN Class set to `%s` "), kLoRaWANClasses[_lora_class]);
 
     return status;
 }
@@ -391,12 +391,14 @@ bool flxLoRaWANDigi::setupModule(void)
         flxLog_E_(F("%s: The XBee LR module failed to initialize"), name());
         return false;
     }
+    else
+        flxLog_V_(F("Device EUID: %s "), deviceEUI());
 
     // // Set the region
     // if (!_pXBeeLR->setLoRaWANRegion(_lora_region))
     //     flxLog_W(F("%s: Error setting the LoRaWAN Region to `%s`"), name(), getRegionName());
     // else
-    //     flxLog_D(F("%s: Set the LoRaWAN Region to `%s`"), name(), getRegionName());
+    //     flxLog_V(F("%s: Set the LoRaWAN Region to `%s`"), name(), getRegionName());
 
     // flxLog_N_(F("."));
 
