@@ -19,10 +19,10 @@
 #define kDLVersionNumberMinor 8
 
 // Point version number
-#define kDLVersionNumberPoint 0
+#define kDLVersionNumberPoint 5
 
 // Version string description
-#define kDLVersionDescriptor "Version 0.8.0 Alpha"
+#define kDLVersionDescriptor "Version 0.8.5 Beta 1"
 
 // app name/class ID string
 #define kDLAppClassNameID "SFE-IOT-NODE_LORAWAN"
