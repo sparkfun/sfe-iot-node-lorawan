@@ -329,6 +329,11 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     _boardButton.on_buttonRelease.call(this, &sfeIoTNodeLoRaWAN::onButtonReleased);
     _boardButton.on_buttonPressed.call(this, &sfeIoTNodeLoRaWAN::onButtonPressed);
 
+    // titles for menu arrangement
+    _loraWANConnection.setTitle("LoRaWAN");
+    _logger.setTitle("Logging");
+    _sysSystem.setTitle("System");
+
     return true;
 }
 //---------------------------------------------------------------------------
