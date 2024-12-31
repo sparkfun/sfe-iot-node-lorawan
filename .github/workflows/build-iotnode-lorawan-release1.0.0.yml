@@ -21,7 +21,7 @@ jobs:
       - name: Checkout Repo and submodules
         uses: actions/checkout@v3
         with:
-          ref: mairelease/v01.00.00
+          ref: release/v01.00.00
 
       # checkout flux-sdk
       - name: Checkout the flux-sdk
