@@ -8,16 +8,10 @@
  *---------------------------------------------------------------------------------
  */
 
-/*
- *---------------------------------------------------------------------------------
- *
- *---------------------------------------------------------------------------------
- */
-
 #include "flxLoRaWANLogger.h"
 
 //---------------------------------------------------------------------------
-// flxLoRaWANLogger Class
+// flxLoRaWANLogger Class - outputs data to the lorawan during a log event
 //---------------------------------------------------------------------------
 
 flxLoRaWANLogger::flxLoRaWANLogger() : _pLoRaWAN{nullptr}
@@ -30,6 +24,8 @@ flxLoRaWANLogger::flxLoRaWANLogger() : _pLoRaWAN{nullptr}
 }
 
 //----------------------------------------------------------------------------
+// Called to start a log event
+//
 void flxLoRaWANLogger::logObservation(void)
 {
 
@@ -45,11 +41,8 @@ void flxLoRaWANLogger::logObservation(void)
 
         // flxLog_I("device: %s", pDevice->name());
 
-        // Do we know about this device  - if so call it's handler
-        // TODO - this is a placeholder - we need to add a handler to the device
-
         bool status = false;
-        // now loop over the device's output parameters - if we know the type, call it's handler
+        // now loop over the device's output parameters
         for (auto param : pDevice->getOutputParameters())
         {
             // Is this parameter enabled? Does it have a value Type set?
@@ -59,7 +52,7 @@ void flxLoRaWANLogger::logObservation(void)
             // we don't process arrays. We only process scalar values
             if ((param->flags() & kParameterOutFlagArray) == kParameterOutFlagArray)
             {
-                // flxLog_W("Array type for parameter: %s", param->name());
+                flxLog_V("Array parameters not supported by LoRaWAN driver. Parameter: %s", param->name());
                 continue;
             }
             flxParameterOutScalar *pScalar = (flxParameterOutScalar *)param->accessor();
