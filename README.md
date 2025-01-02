@@ -6,7 +6,7 @@
 Firmware and associated Documentation and Firmware for the SparkFun IoT Node - LoRaWAN product
 
 ![GitHub release (with filter)](https://img.shields.io/github/v/release/sparkfun/sfe-iot-node-lorawan)
-![GitHub (Pre-)Release Date](https://img.shields.io/github/release-date-pre/sparkfun/sfe-iot-node-lorawan)
+![Release Date](https://img.shields.io/github/release-date/sparkfun/sfe-iot-node-lorawan)
 ![Documentation - build](https://img.shields.io/github/actions/workflow/status/sparkfun/sfe-iot-node-lorawan/pages%2Fpages-build-deployment?label=Documentation)
 [![IoT Node - LoRaWAN - build](https://github.com/sparkfun/sfe-iot-node-lorawan/actions/workflows/build-iotnode-lorawan-develop.yml/badge.svg)](https://github.com/sparkfun/sfe-iot-node-lorawan/actions/workflows/build-iotnode-lorawan-develop.yml)
 ![GitHub issues](https://img.shields.io/github/issues/sparkfun/sfe-iot-node-lorawan)
