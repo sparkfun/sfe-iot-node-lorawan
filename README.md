@@ -1,5 +1,5 @@
 
-![SparkFun IoT Node - LoRaWAN Firmware](https://github.com/sparkfun/sfe-iot-node-lorawan/docs/assets/img/IoT-Node-LoRaWAN-Banner.png "SparkFun IoT Node - LoRaWAN")
+![SparkFun IoT Node - LoRaWAN Firmware](https://github.com/sparkfun/sfe-iot-node-lorawan/docs/assets/img/IoT-Node-LoRaWAN-Banner.jpg "SparkFun IoT Node - LoRaWAN")
 
 # SparkFun IoT Node - LoRaWAN
 
