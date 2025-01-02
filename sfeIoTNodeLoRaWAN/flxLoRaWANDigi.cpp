@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -38,7 +38,6 @@ const uint32_t kProcessMessagesTime = 4000;
 //----------------------------------------------------------------
 // Callbacks for the XBee LR module - these are static functions
 //
-// TODO - Relay this call back into the object/system and move to SDK API/logic
 //
 static void OnReceiveCallback(void *data)
 {
@@ -53,6 +52,7 @@ static void OnReceiveCallback(void *data)
         // Post an event
         flxSendEvent(flxEvent::kLoRaWANReceivedMessage, message);
     }
+    // In verbose mode - log data if we received any
     if (flxIsLoggingVerbose() && packet->payloadSize > 0)
     {
         flxLog_V_(F("[LoRaWAN] Received Packet: {"));
@@ -64,14 +64,20 @@ static void OnReceiveCallback(void *data)
                  packet->rssi, packet->snr, packet->counter);
     }
 }
-
+//----------------------------------------------------------------
+// called by the XBee LR module when a send is completed
+//
 static void OnSendCallback(void *data)
 {
     XBeeLRPacket_t *packet = (XBeeLRPacket_t *)data;
+
+    // post an event for the send status
     flxSendEvent(flxEvent::kLoRaWANSendStatus, packet->status == 0);
 
+    // verbose mode?
     if (flxIsLoggingVerbose())
     {
+        // happy send
         if (packet->status == 0)
         {
             // this is a continuation from the send verbose message
@@ -94,6 +100,7 @@ static void OnSendCallback(void *data)
         }
         else
         {
+            // send error
             flxLog_N_("[");
             flxSerial.textToRed();
             flxLog_N_(F("failed"));
@@ -124,7 +131,6 @@ void flxLoRaWANDigi::set_isEnabled(bool bEnabled)
         return;
 
     // changing state ...
-    // TODO - Should this control connection state?
 
     _isEnabled = bEnabled;
 
@@ -142,6 +148,13 @@ void flxLoRaWANDigi::set_isEnabled(bool bEnabled)
         disconnect();
 }
 
+//----------------------------------------------------------------
+bool flxLoRaWANDigi::get_isEnabled(void)
+{
+    return _isEnabled;
+}
+//----------------------------------------------------------------
+// Some settings to the lora module require a system restart. This method will handle this
 void flxLoRaWANDigi::update_system_config(void)
 {
     // have we setup the system yet -- if not, skip this
@@ -157,12 +170,8 @@ void flxLoRaWANDigi::update_system_config(void)
     // Indicate that the system needs restart
     flxSendEvent(flxEvent::kSystemNeedsRestart);
 }
-//----------------------------------------------------------------
-bool flxLoRaWANDigi::get_isEnabled(void)
-{
-    return _isEnabled;
-}
 
+//----------------------------------------------------------------
 void flxLoRaWANDigi::set_app_eui(std::string appEUI)
 {
     _app_eui = appEUI;
@@ -331,6 +340,7 @@ bool flxLoRaWANDigi::configureModule(void)
 
     flxLog_N_(F("."));
 
+    // Save the config to the module
     if (!_pXBeeLR->writeConfig())
     {
         flxLog_D(F("%s: Failed to write the module configuration"), name());
@@ -338,6 +348,7 @@ bool flxLoRaWANDigi::configureModule(void)
 
     flxLog_N_(F("."));
 
+    // Apply the changes
     if (!_pXBeeLR->applyChanges())
     {
         flxLog_D(F("%s: Failed to apply the module configuration"), name());
@@ -360,6 +371,7 @@ bool flxLoRaWANDigi::setupModule(void)
         // Create the module
         _pXBeeLR = new XBeeArduino(&kXBeeLRSerial, kXBeeLRBaud, XBEE_LORA, OnReceiveCallback, OnSendCallback);
 
+        // no module - ahh - no dice.
         if (!_pXBeeLR)
         {
             flxLog_E(F("%s: Failed to create the XBee LR module"), name());
@@ -394,6 +406,8 @@ bool flxLoRaWANDigi::setupModule(void)
     else
         flxLog_V_(F("Device EUID: %s "), deviceEUI());
 
+    // note:
+    // TODO: this wasn't working in 12/2024 -- need to revisit in the future as the XBee LR library is updated
     // // Set the region
     // if (!_pXBeeLR->setLoRaWANRegion(_lora_region))
     //     flxLog_W(F("%s: Error setting the LoRaWAN Region to `%s`"), name(), getRegionName());
@@ -510,6 +524,8 @@ bool flxLoRaWANDigi::isConnected()
 }
 
 //----------------------------------------------------------------
+// Initialize the object/system - -called by the system during startup of the framework
+
 bool flxLoRaWANDigi::initialize(void)
 {
 
@@ -540,8 +556,6 @@ bool flxLoRaWANDigi::initialize(void)
 
     // Our process messages job
     _processJob.setup("LoRaWAN Process", kProcessMessagesTime, this, &flxLoRaWANDigi::processMessagesCB);
-
-    // Do we connect now?
 
     // is it desired to delay the startup/connect call?
     if (_delayedStartup)
@@ -583,6 +597,11 @@ void flxLoRaWANDigi::reset_module(void)
         connect();
 }
 //----------------------------------------------------------------
+// Send a payload to the LoRaWAN module
+//
+/// @param payload - the data to send - already packed and ready to go
+/// @param len - the length of the payload
+///
 bool flxLoRaWANDigi::sendPayload(const uint8_t *payload, size_t len)
 {
     if (payload == nullptr || len == 0 || _pXBeeLR == nullptr)
@@ -611,6 +630,9 @@ bool flxLoRaWANDigi::sendPayload(const uint8_t *payload, size_t len)
     return _pXBeeLR->sendData(packet);
 }
 //----------------------------------------------------------------
+// Connection Status Callback
+// This is called by the connection job to check the connection status of the module
+//
 void flxLoRaWANDigi::connectionStatusCB(void)
 {
     // Connection change???
@@ -654,6 +676,8 @@ void flxLoRaWANDigi::processMessagesCB(void)
     _pXBeeLR->process();
 }
 //----------------------------------------------------------------
+// Reconnect Job Callback
+//
 void flxLoRaWANDigi::reconnectJobCB(void)
 {
     // If we're enabled, and not connected, try to connect
@@ -700,10 +724,10 @@ void flxLoRaWANDigi::startReconnectMode(void)
     }
 }
 //----------------------------------------------------------------
-
 // data / packet transmission things
 //----------------------------------------------------------------
-// Init the package
+// Check the buffer for space - if we have room, return true
+// If we don't have room, send out the pending packet and reset the buffer.
 
 bool flxLoRaWANDigi::checkBuffer(size_t len)
 {
@@ -729,6 +753,7 @@ bool flxLoRaWANDigi::checkBuffer(size_t len)
     return true;
 }
 
+//------------------------------------------------------------------------------------------
 // methods to send data to the LoRaWAN module - based on data size.
 //------------------------------------------------------------------------------------------
 // bool

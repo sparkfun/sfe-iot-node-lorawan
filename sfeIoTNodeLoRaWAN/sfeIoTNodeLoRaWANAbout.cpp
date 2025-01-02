@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -146,9 +146,6 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
         flxLog__(logLevel, "%cFuel Gauge - State of Charge: %c%.1f%%", pre_ch,
                  _fuelGauge->getChangeRate() > 0 ? '+' : ' ', _fuelGauge->getSOC());
     }
-    // flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
-    // flxLog_N("%c    Sleep Interval: %d seconds", pre_ch, sleepInterval());
-    // flxLog_N("%c    Wake Interval: %d seconds", pre_ch, wakeInterval());
 
     flxLog_N("");
     if (!useInfo)
