@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -13,6 +13,7 @@
 #include <ArduinoJson.h>
 #include <Flux/flxCoreLog.h>
 
+#include <Flux/flxPlatform.h>
 #include <Flux/flxSerialField.h>
 #include <Flux/flxUtils.h>
 #include <time.h>
@@ -25,46 +26,28 @@ class sfeNLCommands
     //---------------------------------------------------------------------
     // Command Callbacks
     //---------------------------------------------------------------------
-    // bool factoryResetDevice(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
 
-    //     return theApp->_sysUpdate.factoryResetDevice();
-    // }
+    //---------------------------------------------------------------------
+    bool resetDevice(sfeIoTNodeLoRaWAN *theApp)
+    {
+        if (!theApp)
+            return false;
 
-    // //---------------------------------------------------------------------
-    // bool resetDevice(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
+        theApp->_sysSystem.resetDevicePrompt();
 
-    //     // Need to prompt for an a-okay ...
-    //     Serial.printf("\n\rClear and Restart Device? [Y/n]? ");
-    //     uint8_t selected = theApp->_serialSettings.getMenuSelectionYN();
-    //     flxLog_N("");
+        // should never get here
+        return true;
+    }
+    //---------------------------------------------------------------------
+    bool resetDeviceForced(sfeIoTNodeLoRaWAN *theApp)
+    {
+        if (!theApp)
+            return false;
 
-    //     if (selected != 'y' || selected == kReadBufferTimeoutExpired || selected == kReadBufferExit)
-    //     {
-    //         flxLog_I(F("Aborting..."));
-    //         return false;
-    //     }
+        theApp->_sysSystem.resetDevice();
 
-    //     return resetDeviceForced(theApp);
-    // }
-    // //---------------------------------------------------------------------
-    // bool resetDeviceForced(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
-
-    //     theApp->_sysStorage.resetStorage();
-    //     flxLog_I(F("Settings Cleared"));
-
-    //     theApp->_sysUpdate.restartDevice();
-
-    //     return true;
-    // }
+        return true;
+    }
     //---------------------------------------------------------------------
     bool clearDeviceSettings(sfeIoTNodeLoRaWAN *theApp)
     {
@@ -100,8 +83,8 @@ class sfeNLCommands
     // //---------------------------------------------------------------------
     bool restartDevice(sfeIoTNodeLoRaWAN *theApp)
     {
-        // if (theApp)
-        //     theApp->_sysUpdate.restartDevicePrompt();
+        if (theApp)
+            theApp->_sysSystem.restartDevicePrompt();
 
         return true;
     }
@@ -109,8 +92,8 @@ class sfeNLCommands
     bool restartDeviceForced(sfeIoTNodeLoRaWAN *theApp)
     {
 
-        // if (theApp)
-        //     theApp->_sysUpdate.restartDevice();
+        if (theApp)
+            theApp->_sysSystem.restartDevice();
 
         return true;
     }
@@ -137,31 +120,32 @@ class sfeNLCommands
     /// @param theApp Pointer to the DataLogger App
     /// @retval bool indicates success (true) or failure (!true)
     ///
-    bool loadJSONSettings(sfeIoTNodeLoRaWAN *theApp)
-    {
-        if (!theApp)
-            return false;
+    // bool loadJSONSettings(sfeIoTNodeLoRaWAN *theApp)
+    // {
+    //     if (!theApp)
+    //         return false;
 
-        flxLog_I(F("Load JSON Settings - Not Implemented"));
+    //     flxLog_I(F("Load JSON Settings - Not Implemented"));
 
-        // // Create a JSON prefs serial object and read in the settings
-        // flxStorageJSONPrefSerial prefsSerial(flxSettings.fallbackBuffer() > 0 ? flxSettings.fallbackBuffer() : 2000);
+    //     // // Create a JSON prefs serial object and read in the settings
+    //     // flxStorageJSONPrefSerial prefsSerial(flxSettings.fallbackBuffer() > 0 ? flxSettings.fallbackBuffer() :
+    //     2000);
 
-        // // restore the settings from serial
-        // bool status = flxSettings.restoreObjectFromStorage(&flux, &prefsSerial);
-        // if (!status)
-        //     return false;
+    //     // // restore the settings from serial
+    //     // bool status = flxSettings.restoreObjectFromStorage(&flux, &prefsSerial);
+    //     // if (!status)
+    //     //     return false;
 
-        // flxLog_I_(F("Settings restored from serial..."));
+    //     // flxLog_I_(F("Settings restored from serial..."));
 
-        // // now save the new settings in primary storage
-        // status = flxSettings.save(&flux, true);
-        // if (status)
-        //     flxLog_N(F("saved locally"));
+    //     // // now save the new settings in primary storage
+    //     // status = flxSettings.save(&flux, true);
+    //     // if (status)
+    //     //     flxLog_N(F("saved locally"));
 
-        // return status;
-        return true;
-    }
+    //     // return status;
+    //     return true;
+    // }
     //---------------------------------------------------------------------
     ///
     /// @brief Saves the current system to preferences/Settings
@@ -174,18 +158,14 @@ class sfeNLCommands
         if (!theApp)
             return false;
 
-        flxLog_I(F("Save Settings - Not Implemented"));
+        // Just call save
+        bool status = flxSettings.save(&flux);
+        if (status)
+            flxLog_I(F("Saving System Settings."));
+        else
+            flxLog_E(F("Error saving settings"));
 
-        // // Just call save
-        // bool status = flxSettings.save(&flux);
-        // if (status)
-        //     flxLog_I(F("Saving System Settings."));
-        // else
-        //     flxLog_E(F("Error saving settings"));
-
-        // return status;
-
-        return true;
+        return status;
     }
     //---------------------------------------------------------------------
     ///
@@ -197,10 +177,10 @@ class sfeNLCommands
     bool heapStatus(sfeIoTNodeLoRaWAN *theApp)
     {
 
-        flxLog_I(F("Heap Status - Not Implemented"));
-        // // just dump out the current heap
-        // flxLog_I(F("System Heap - Total: %dB Free: %dB (%.1f%%)"), ESP.getHeapSize(), ESP.getFreeHeap(),
-        //          (float)ESP.getFreeHeap() / (float)ESP.getHeapSize() * 100.);
+        // just dump out the current heap
+        flxLog_I("System Heap - Total: %dB Free: %dB (%.1f%%)", flxPlatform::heap_size(), flxPlatform::heap_free(),
+                 (float)flxPlatform::heap_free() / (float)flxPlatform::heap_size() * 100.);
+
         return true;
     }
 
@@ -252,34 +232,35 @@ class sfeNLCommands
     /// @param theApp Pointer to the DataLogger App
     /// @retval bool indicates success (true) or failure (!true)
     ///
-    bool sdCardStats(sfeIoTNodeLoRaWAN *theApp)
-    {
-        if (!theApp)
-            return false;
+    // bool sdCardStats(sfeIoTNodeLoRaWAN *theApp)
+    // {
+    //     if (!theApp)
+    //         return false;
 
-        flxLog_I(F("SD Stats - Not Implemented"));
+    //     flxLog_I(F("SD Stats - Not Implemented"));
 
-        // if (theApp->_theSDCard.enabled())
-        // {
+    //     // if (theApp->_theSDCard.enabled())
+    //     // {
 
-        //     char szSize[32];
-        //     char szCap[32];
-        //     char szAvail[32];
+    //     //     char szSize[32];
+    //     //     char szCap[32];
+    //     //     char szAvail[32];
 
-        //     flx_utils::formatByteString(theApp->_theSDCard.size(), 2, szSize, sizeof(szSize));
-        //     flx_utils::formatByteString(theApp->_theSDCard.total(), 2, szCap, sizeof(szCap));
-        //     flx_utils::formatByteString(theApp->_theSDCard.total() - theApp->_theSDCard.used(), 2, szAvail,
-        //                                 sizeof(szAvail));
+    //     //     flx_utils::formatByteString(theApp->_theSDCard.size(), 2, szSize, sizeof(szSize));
+    //     //     flx_utils::formatByteString(theApp->_theSDCard.total(), 2, szCap, sizeof(szCap));
+    //     //     flx_utils::formatByteString(theApp->_theSDCard.total() - theApp->_theSDCard.used(), 2, szAvail,
+    //     //                                 sizeof(szAvail));
 
-        //     flxLog_I(F("SD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)"), theApp->_theSDCard.type(),
-        //     szSize,
-        //              szCap, szAvail, 100. - (theApp->_theSDCard.used() / (float)theApp->_theSDCard.total() * 100.));
-        // }
-        // else
-        //     flxLog_I(F("SD card not available"));
+    //     //     flxLog_I(F("SD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)"), theApp->_theSDCard.type(),
+    //     //     szSize,
+    //     //              szCap, szAvail, 100. - (theApp->_theSDCard.used() / (float)theApp->_theSDCard.total() *
+    //     100.));
+    //     // }
+    //     // else
+    //     //     flxLog_I(F("SD card not available"));
 
-        return true;
-    }
+    //     return true;
+    // }
 
     //---------------------------------------------------------------------
     ///
@@ -402,27 +383,64 @@ class sfeNLCommands
 
         return true;
     }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief Toggle verbose output
+    ///
+    /// @param theApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool toggleVerboseOutput(sfeIoTNodeLoRaWAN *theApp)
+    {
+
+        if (theApp)
+            theApp->set_verbose(!theApp->get_verbose());
+        flxLog_I("Verbose Output %s", theApp->get_verbose() ? "Enabled" : "Disabled");
+
+        return true;
+    }
+    //---------------------------------------------------------------------
+    ///
+    /// @brief output lora status/stats
+    ///
+    /// @param theApp Pointer to the DataLogger App
+    /// @retval bool indicates success (true) or failure (!true)
+    ///
+    bool loraStatus(sfeIoTNodeLoRaWAN *theApp)
+    {
+
+        if (!theApp)
+            return false;
+        flxLog_I("LoRaWAN Status: '%s'", theApp->_loraWANConnection.isConnected() ? "Connected" : "Disconnected");
+        flxLog_I("Device EUI: %s", theApp->_loraWANConnection.deviceEUI());
+        flxLog_I("Application EUI: %s", theApp->_loraWANConnection.appEUI().c_str());
+        flxLog_I("Operating Class: '%s'",
+                 theApp->_loraWANConnection.kLoRaWANClasses[theApp->_loraWANConnection.loraWANClass()]);
+        flxLog_I("Operating Region: '%s'", theApp->_loraWANConnection.getRegionName());
+        return true;
+    }
 
     //---------------------------------------------------------------------
     // our command map - command name to callback method
     commandMap_t _commandMap = {
-        // {"factory-reset", &sfeNLCommands::factoryResetDevice},
-        // {"reset-device", &sfeNLCommands::resetDevice},
-        // {"reset-device-forced", &sfeNLCommands::resetDeviceForced},
+        {"reset-device", &sfeNLCommands::resetDevice},
+        {"reset-device-forced", &sfeNLCommands::resetDeviceForced},
         {"clear-settings", &sfeNLCommands::clearDeviceSettings},
         {"clear-settings-forced", &sfeNLCommands::clearDeviceSettingsForced},
         {"restart", &sfeNLCommands::restartDevice},
         {"restart-forced", &sfeNLCommands::restartDeviceForced},
-        {"json-settings", &sfeNLCommands::loadJSONSettings},
+        // {"json-settings", &sfeNLCommands::loadJSONSettings},
         {"log-rate", &sfeNLCommands::logRateStats},
         {"log-rate-toggle", &sfeNLCommands::logRateToggle},
         {"log-now", &sfeNLCommands::logObservationNow},
-        {"sdcard", &sfeNLCommands::sdCardStats},
+        // {"sdcard", &sfeNLCommands::sdCardStats},
         {"devices", &sfeNLCommands::listLoadedDevices},
         {"save-settings", &sfeNLCommands::saveSettings},
         {"heap", &sfeNLCommands::heapStatus},
         {"systime", &sfeNLCommands::outputSystemTime},
         {"uptime", &sfeNLCommands::outputUpTime},
+        {"verbose", &sfeNLCommands::toggleVerboseOutput},
+        {"lora-status", &sfeNLCommands::loraStatus},
         {"device-id", &sfeNLCommands::printDeviceID},
         {"version", &sfeNLCommands::printVersion},
         {"about", &sfeNLCommands::aboutDevice},

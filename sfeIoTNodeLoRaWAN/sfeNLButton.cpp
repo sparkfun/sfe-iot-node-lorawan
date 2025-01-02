@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -11,7 +11,7 @@
 #include "sfeNLButton.h"
 #include "sfeNLBoard.h"
 
-// What Defines momemtary press?
+// What Defines momentary press?
 const uint16_t kMomentaryPress = 1001;
 
 // Button Event Types ...

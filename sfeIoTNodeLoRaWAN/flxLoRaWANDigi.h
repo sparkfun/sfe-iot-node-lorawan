@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -19,6 +19,11 @@
 
 // Setup an event
 flxDefineEventID(kLoRaWANSendStatus);
+// Event for received messages
+flxDefineEventID(kLoRaWANReceivedMessage);
+
+// Our Development App EUI
+#define kDevelopmentAppEUI "37D56A3F6CDCF0A5"
 
 class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 {
@@ -28,14 +33,45 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     void reset_module(void);
 
+    void set_app_eui(std::string appEUI);
+    std::string get_app_eui(void);
+    std::string _app_eui;
+
+    void set_app_key(std::string appKey);
+    std::string get_app_key(void);
+
+    std::string _app_key;
+
+    void set_network_key(std::string networkKey);
+    std::string get_network_key(void);
+    std::string _network_key;
+
+    void update_system_config(void);
+
+    void set_lora_class(uint8_t);
+    uint8_t get_lora_class(void);
+    uint8_t _lora_class;
+
+    void set_lora_region(uint8_t);
+    uint8_t get_lora_region(void);
+    uint8_t _lora_region;
+
   public:
     // ctor
     flxLoRaWANDigi()
-        : _wasConnected{false}, _isEnabled{true}, _delayedStartup{false}, _moduleInitialized{false}, _pXBeeLR{nullptr},
-          _devEUI{'\0'}, _currentOffset{0}
+        : _app_key{""}, _network_key{""}, _lora_class{2}, _lora_region{kLoRaWANRegionIDs[0]}, _wasConnected{false},
+          _isEnabled{true}, _delayedStartup{false}, _moduleInitialized{false}, _pXBeeLR{nullptr}, _devEUI{'\0'},
+          _currentOffset{0}
     {
         setName("LoRaWAN Network", "Digi LoRaWAN connection for the system");
         flux_add(this);
+
+        // default app EUI
+#if defined(FLX_SPARKFUN_LORAWAN_APP_EUI)
+        _app_eui = FLX_SPARKFUN_LORAWAN_APP_EUI;
+#else
+        _app_eui = kDevelopmentAppEUI;
+#endif
     }
 
     // dtor
@@ -50,11 +86,21 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     }
 
     // Properties
-    flxPropertyString<flxLoRaWANDigi> appEUI;
-    flxPropertySecureString<flxLoRaWANDigi> appKey;
-    flxPropertySecureString<flxLoRaWANDigi> networkKey;
+    flxPropertyRWString<flxLoRaWANDigi, &flxLoRaWANDigi::get_app_eui, &flxLoRaWANDigi::set_app_eui> appEUI;
+    flxPropertyRWSecureString<flxLoRaWANDigi, &flxLoRaWANDigi::get_app_key, &flxLoRaWANDigi::set_app_key> appKey;
+    flxPropertyRWSecureString<flxLoRaWANDigi, &flxLoRaWANDigi::get_network_key, &flxLoRaWANDigi::set_network_key>
+        networkKey;
 
     flxPropertyRWBool<flxLoRaWANDigi, &flxLoRaWANDigi::get_isEnabled, &flxLoRaWANDigi::set_isEnabled> enabled;
+
+    flxPropertyRWUInt8<flxLoRaWANDigi, &flxLoRaWANDigi::get_lora_class, &flxLoRaWANDigi::set_lora_class> loraWANClass =
+        {2, {{kLoRaWANClasses[0], 0}, {kLoRaWANClasses[1], 1}, {kLoRaWANClasses[2], 2}}};
+
+    flxPropertyRWUInt8<flxLoRaWANDigi, &flxLoRaWANDigi::get_lora_region, &flxLoRaWANDigi::set_lora_region>
+        loraWANRegion = {
+            kLoRaWANRegionIDs[0],
+            {{kLoRaWANRegionNames[0], kLoRaWANRegionIDs[0]}, {kLoRaWANRegionNames[1], kLoRaWANRegionIDs[1]}}};
+
     flxPropertyHiddenBool<flxLoRaWANDigi> _moduleConfigured = {false};
 
     // input params/functions
@@ -93,11 +139,19 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
     bool sendData(uint8_t tag, const uint8_t *data, size_t len);
     bool flushBuffer(void);
 
+    static constexpr const char *kLoRaWANClasses[3] = {"A", "B", "C"};
+    static constexpr const char *kLoRaWANRegionNames[2] = {"US915", "EU868"};
+    static constexpr uint8_t kLoRaWANRegionIDs[2] = {8, 5};
+
+    const char *getRegionName(void);
+
   private:
     void connectionStatusCB(void);
     bool setupModule(void);
     bool configureModule(void);
     void reconnectJobCB(void);
+    void processMessagesCB(void);
+    bool setupLoRaWANClass(void);
 
     // send our payload buffer
     bool sendPayload(const uint8_t *payload, size_t len);
@@ -118,6 +172,9 @@ class flxLoRaWANDigi : public flxActionType<flxLoRaWANDigi>
 
     // our job for reconnection
     flxJob _reconnectJob;
+
+    // The XBee processing messages (incoming) job
+    flxJob _processJob;
 
     // Our XBee object for the LoRaWAN module
     XBeeArduino *_pXBeeLR;

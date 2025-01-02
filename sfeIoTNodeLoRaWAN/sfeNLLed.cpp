@@ -2,7 +2,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -95,9 +95,9 @@ static void _sfeLED_TaskProcessing(void *parameter)
 // _sfeLED implementation
 //---------------------------------------------------------
 
-_sfeLED::_sfeLED() : _current{0}, _isInitialized{false}, _blinkOn{false}, _disabled{false}
+_sfeLED::_sfeLED() : _current{0}, _isInitialized{false}, _blinkOn{false}, _disabled{false}, _brightness{kLEDBrightness}
 {
-    _colorStack[0] = {_sfeLED::Black, 0};
+    _colorStack[0] = {_sfeLED::Black, 0, kLEDBrightness};
 }
 
 //---------------------------------------------------------
@@ -197,6 +197,12 @@ void _sfeLED::_eventCB(cmdStruct_t &theCommand)
         update();
         break;
 
+    case kCmdBrightness:
+        _brightness = theCommand.data.brightness;
+        _colorStack[_current].brightness = theCommand.data.brightness;
+        update();
+        break;
+
     case kCmdReset:
         _current = 0;
         update();
@@ -224,6 +230,7 @@ void _sfeLED::update(void)
         return;
 
     _theLED = _colorStack[_current].color;
+    FastLED.setBrightness(_colorStack[_current].brightness);
     FastLED.show();
 
     // check blink state - blink on, blink off?
@@ -269,7 +276,7 @@ void _sfeLED::queueCommand(cmdType_t command, sfeLEDColor_t color, uint32_t tick
     if (!_isInitialized)
         return;
 
-    cmdStruct_t theCommand = {command, {color, ticks}};
+    cmdStruct_t theCommand = {command, {color, ticks, _brightness}};
 
     xQueueSend(hCmdQueue, (void *)&theCommand, 10);
     // if (xQueueSend(hCmdQueue, (void *)&theCommand, 10) != pdPASS)
@@ -338,6 +345,16 @@ void _sfeLED::stop(bool turnoff)
         return;
 
     queueCommand(turnoff ? kCmdOff : kCmdBlink);
+}
+//---------------------------------------------------------
+// brightness
+void _sfeLED::brightness(uint8_t brightness)
+{
+    if (_disabled)
+        return;
+
+    _brightness = brightness;
+    queueCommand(kCmdBrightness);
 }
 //---------------------------------------------------------
 // refresh

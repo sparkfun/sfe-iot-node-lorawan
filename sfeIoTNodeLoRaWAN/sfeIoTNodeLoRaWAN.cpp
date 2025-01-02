@@ -2,7 +2,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -24,6 +24,31 @@ static const char *kProductName = "SparkFun IoT Node LoRaWAN";
 
 // delay used in loop during startup
 const uint32_t kStartupLoopDelayMS = 70;
+
+// Button event increment
+#define kButtonPressedIncrement 5
+
+//---------------------------------------------------------------------------
+// LoRaWAN Receive message ids
+//
+// Set the on-board LED to the RGB value in the message
+const uint8_t kLoRaWANMsgLEDRGB = 0x01;
+
+// Turn off the on-board LED
+const uint8_t kLoRaWANMsgLEDOff = 0x02;
+
+// Set the on-board LED to blink with the given RGB color
+const uint8_t kLoRaWANMsgLEDBlink = 0x03;
+
+// Set the on-board LED to fast blink with the given RGB color
+const uint8_t kLoRaWANMsgLEDFastBlink = 0x04;
+
+// Set the on-board LED to flash with the given RGB color
+const uint8_t kLoRaWANMsgLEDFlash = 0x05;
+
+// Set the brightness for the  on-board LED
+const uint8_t kLoRaWANMsgLEDBrightness = 0x06;
+//---------------------------------------------------------------------------
 
 // Application keys - used to encrypt runtime secrets for the app.
 //
@@ -103,6 +128,7 @@ void sfeIoTNodeLoRaWAN::onInitStartupCommands(uint32_t delaySecs)
         const char *name;
     } startupCommand_t;
     startupCommand_t commands[] = {{'n', kAppOpNone, "normal-startup"},
+                                   {'v', kAppOpStartVerboseOutput, "verbose-output-enabled"},
                                    {'a', kAppOpStartNoAutoload, "device-auto-load-disabled"},
                                    {'l', kAppOpStartListDevices, "i2c-driver-listing-enabled"},
                                    {'s', kAppOpStartNoSettings, "settings-restore-disabled"}};
@@ -195,6 +221,7 @@ void sfeIoTNodeLoRaWAN::onInit()
     verboseDevNames.setTitle("Advanced");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
     flxRegister(startupDelaySecs, "Startup Delay", "Startup Menu Delay in Seconds");
+    flxRegister(verboseEnabled, "Verbose Messages", "Enable verbose messages");
 
     // about?
     flxRegister(aboutApplication, "About...", "Details about the system");
@@ -265,8 +292,14 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // Event Callback for lorawan send status
     flxRegisterEventCB(flxEvent::kLoRaWANSendStatus, this, &sfeIoTNodeLoRaWAN::onLoRaWANSendEvent);
 
-    // Set the default timer interval, before restore of settings
-    _timer.interval = kDefaultLogInterval;
+    // Event Callback for lorawan receive status
+    flxRegisterEventCB(flxEvent::kLoRaWANReceivedMessage, this, &sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent);
+
+    // for system reset event
+    flxRegisterEventCB(flxEvent::kOnSystemReset, this, &sfeIoTNodeLoRaWAN::onSystemResetEvent);
+
+    // for needs restart event
+    flxRegisterEventCB(flxEvent::kSystemNeedsRestart, this, &sfeIoTNodeLoRaWAN::onNeedsRestart);
 
     // was device auto load disabled by startup commands?
     if (inOpMode(kAppOpStartNoAutoload))
@@ -275,19 +308,31 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // was settings restore disabled by startup commands?
     if (inOpMode(kAppOpStartNoSettings))
         flux.setLoadSettings(false);
-    ;
 
-    // was wifi startup disabled by startup commands?
+    // Verbose output
+    if (inOpMode(kAppOpStartVerboseOutput))
+        set_verbose(true);
+
+    // was list device divers set by startup commands?
     if (inOpMode(kAppOpStartListDevices))
         flux.dumpDeviceAutoLoadTable();
-
-    // Serial UX - pass to our update routine
-    // _sysUpdate.setSerialSettings(_serialSettings);
 
     // Button events we're listening on
     _boardButton.on_momentaryPress.call(this, &sfeIoTNodeLoRaWAN::onLogEvent);
 
     flux_add(_boardButton);
+
+    // We want an event every 5 seconds
+    _boardButton.setPressIncrement(kButtonPressedIncrement);
+
+    // Button events we're listening on
+    _boardButton.on_buttonRelease.call(this, &sfeIoTNodeLoRaWAN::onButtonReleased);
+    _boardButton.on_buttonPressed.call(this, &sfeIoTNodeLoRaWAN::onButtonPressed);
+
+    // titles for menu arrangement
+    _loraWANConnection.setTitle("LoRaWAN");
+    _logger.setTitle("Logging");
+    _sysSystem.setTitle("System");
 
     return true;
 }
@@ -316,6 +361,8 @@ void sfeIoTNodeLoRaWAN::onRestore()
 {
     // flxLog_I("in onRestore()");
     setAppClassID(kDLAppClassNameID, (char *)kAppClassPrefix);
+    // Set the default timer interval, before restore of settings
+    _timer.interval = kDefaultLogInterval;
 }
 
 //---------------------------------------------------------------------------
@@ -331,9 +378,8 @@ bool sfeIoTNodeLoRaWAN::onStart()
     //  - Add the JSON and CVS format to the logger
     _logger.add(_fmtJSON);
     _logger.add(_fmtCSV);
-    // _fmtJSON.add(flxSerial);
-    // _logger.add(_fmtCSV);
-    // _fmtCSV.add(flxSerial);
+
+    _sysSystem.setSerialSettings(_serialSettings);
 
     // check our I2C devices
     // Loop over the device list - note that it is iterable.
@@ -361,6 +407,13 @@ bool sfeIoTNodeLoRaWAN::onStart()
         }
     }
 
+    // setup the ENS160
+    setupENS160();
+
+    // Check time devices
+    if (!setupTime())
+        flxLog_W(F("Time reference setup failed."));
+
     flxLog_N("");
     // Do we have a fuel gauge ...
     if (_fuelGauge)
@@ -387,8 +440,21 @@ bool sfeIoTNodeLoRaWAN::onStart()
     // Display detailed app info
     displayAppStatus(true);
 
+    flxLog_N("");
+    flxSerial.textToWhite();
+    flxLog_N_("Startup Complete");
+    flxSerial.textToNormal();
+    flxLog_N(" - Press any key to enter the settings menu, '!' to enter console commands - '!help' for commands");
+
+    // not in startup now. Clear startup flags
+    clearOpMode(kAppOpStartup);
+    clearOpMode(kAppOpStartAllFlags);
+
     sfeLED.off();
 
+    // trigger a log event if we are connected
+    if (_loraWANConnection.isConnected())
+        _timer.trigger();
     return true;
 }
 
@@ -489,7 +555,7 @@ void sfeIoTNodeLoRaWAN::onSettingsEdit(bool bLoading)
         if (inOpMode(kAppOpPendingRestart))
         {
             flxLog_N("\n\rSome changes required a device restart to take effect...");
-            // _sysUpdate.restartDevice();
+            _sysSystem.restartDevice();
 
             // this shouldn't return unless user aborted
             clearOpMode(kAppOpPendingRestart);
@@ -518,6 +584,55 @@ void sfeIoTNodeLoRaWAN::onErrorMessage(uint8_t msgType)
     else if (msgType == (uint8_t)flxLogWarning)
         sfeLED.flash(sfeLED.Yellow);
 }
+
+//---------------------------------------------------------------------------
+// Button Events - general handler
+//---------------------------------------------------------------------------
+//
+// CAlled when the button is pressed and an increment time passed
+void sfeIoTNodeLoRaWAN::onButtonPressed(uint32_t increment)
+{
+
+    // we need LED on for visual feedback...
+    sfeLED.setDisabled(false);
+
+    if (increment == 1)
+        sfeLED.blink(sfeLED.Yellow, kLEDFlashSlow);
+
+    else if (increment == 2)
+        sfeLED.blink(kLEDFlashMedium);
+
+    else if (increment == 3)
+        sfeLED.blink(kLEDFlashFast);
+
+    else if (increment >= 4)
+    {
+        sfeLED.stop();
+
+        sfeLED.on(sfeLED.Red);
+        delay(500);
+        sfeLED.off();
+
+        // Reset time !
+        _sysSystem.resetDevice();
+    }
+}
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::onButtonReleased(uint32_t increment)
+{
+    if (increment > 0)
+        sfeLED.off();
+}
+
+// need a restart message
+void sfeIoTNodeLoRaWAN::onNeedsRestart(void)
+{
+    if (inOpMode(kAppOpStartup))
+        return;
+
+    // set the need a restart flag
+    setOpMode(kAppOpPendingRestart);
+}
 // ---------------------------------------------------------------------------
 // Log event
 // ---------------------------------------------------------------------------
@@ -543,6 +658,50 @@ void sfeIoTNodeLoRaWAN::onLoRaWANSendEvent(bool bOkay)
         sfeLED.flash(sfeLED.Red);
 }
 
+void sfeIoTNodeLoRaWAN::onSystemResetEvent(void)
+{
+    // The system is being reset - reset our settings
+    flxSettings.reset();
+}
+//---------------------------------------------------------------------------
+// Callback for LoRaWAN receive events
+void sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent(uint32_t data)
+{
+
+    // flxLog_I("LoRaWAN Received Event: 0x%0.8X", data);
+
+    uint8_t *pData = (uint8_t *)&data;
+
+    // We basically update/change the state of the on-board LED
+    sfeLEDColor_t color;
+    switch (pData[0])
+    {
+    case kLoRaWANMsgLEDRGB:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.on(color);
+        break;
+
+    case kLoRaWANMsgLEDOff:
+        sfeLED.off();
+        break;
+    case kLoRaWANMsgLEDBlink:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.blink(color, 1000);
+        break;
+    case kLoRaWANMsgLEDFastBlink:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.blink(color, 500);
+        break;
+    case kLoRaWANMsgLEDFlash:
+        color = pData[1] << 16 | pData[2] << 8 | pData[3];
+        sfeLED.flash(color);
+        break;
+    case kLoRaWANMsgLEDBrightness:
+        flxLog_I("Brightness: %u", pData[1]);
+        sfeLED.brightness(pData[1]);
+        break;
+    }
+}
 //---------------------------------------------------------------------------
 // checkBatteryLevels()
 //
@@ -595,7 +754,33 @@ void sfeIoTNodeLoRaWAN::set_termBaudRate(uint32_t newRate)
     }
 }
 //---------------------------------------------------------------------------
-//
+// verbose messages
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::set_verbose(bool enable)
+{
+
+    // If disable, but we are in startup mode that enables verbose, don't set disable
+    if (enable)
+    {
+
+        flxSetLoggingVerbose();
+
+        // if in startup, the verbose mode is being set via pref restore. Note the change to user
+        if (inOpMode(kAppOpStartup))
+        {
+            flxLog_N("");
+            flxLog_V(F("Verbose output enabled"));
+        }
+    }
+    else if (!inOpMode(kAppOpStartVerboseOutput))
+        flxSetLoggingInfo();
+}
+bool sfeIoTNodeLoRaWAN::get_verbose(void)
+{
+    return flxIsLoggingVerbose();
+}
+//---------------------------------------------------------------------------
+// Loop
 //---------------------------------------------------------------------------
 
 bool sfeIoTNodeLoRaWAN::loop()
@@ -607,7 +792,11 @@ bool sfeIoTNodeLoRaWAN::loop()
         uint8_t chIn = Serial.read();
         if (chIn == '!')
         {
+            flxSerial.textToWhite();
+            Serial.write('>');
+            flxSerial.textToNormal();
             Serial.write('!');
+            Serial.flush();
             sfeNLCommands cmdProcessor;
             bool status = cmdProcessor.processCommand(this);
         }

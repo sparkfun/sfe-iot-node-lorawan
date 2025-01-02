@@ -2,7 +2,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -19,10 +19,6 @@ sfeIoTNodeLoRaWAN theNodeLoRaWAN;
 
 void setup()
 {
-    // put your setup code here, to run once:
-
-    // delay(2000);
-    // Serial.begin(115200);
 
     // Startup the framework
     flux.setApplication(theNodeLoRaWAN);
@@ -31,10 +27,9 @@ void setup()
 
 void loop()
 {
-
-    // Serial.printf("Loop - testing\n\r");
+    // Run the framework
     if (flux.loop())
         sfeLED.flash(sfeLED.Blue);
 
-    delay(100);
+    delay(10);
 }

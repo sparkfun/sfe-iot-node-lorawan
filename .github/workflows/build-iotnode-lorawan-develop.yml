@@ -9,8 +9,8 @@ on:
 
 env:
   ARDUINO_RP2040_DIR: .arduino15/packages/rp2040/hardware/rp2040/4.3.1
-#   DATALOGGER_IOT_APP_KEY: ${{ secrets.DATALOGGER_IOT_APP_KEY }}
-#   DATALOGGER_IOT_ID_KEY: ${{ secrets.DATALOGGER_IOT_ID_KEY }}
+  IOT_NODE_LORAWAN_APP_KEY: ${{ secrets.IOT_NODE_LORAWAN_APP_KEY }}
+  FLX_SPARKFUN_LORAWAN_APP_EUI: ${{ secrets.FLX_SPARKFUN_LORAWAN_APP_EUI }}
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch feature/rp2350-port https://github.com/sparkfun/flux-sdk.git
+          git clone --branch release/iot-node-lorawan-release https://github.com/sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
@@ -58,7 +58,7 @@ jobs:
           cd patch
           cp boards.txt $HOME/$ARDUINO_RP2040_DIR/boards.txt
           cp -R sparkfun_iotnode_lorawanrp2350 $HOME/$ARDUINO_RP2040_DIR/variants/
-          cp sparkfun_iotnode_lorawan_rp2350.h $HOME/$ARDUINO_RP2040_DIR//pico-sdk/src/boards/include/boards/
+          cp sparkfun_iotnode_lorawan_rp2350.h $HOME/$ARDUINO_RP2040_DIR/pico-sdk/src/boards/include/boards/
           cd ..
 
       # install the libraries Flux uses
@@ -70,7 +70,7 @@ jobs:
       - name: Install The XBee LoRaWAN library
         run: |
           arduino-cli config set library.enable_unsafe_install true
-          arduino-cli lib install --git-url "https://github.com/gigapod/XBeeArduino.git"
+          arduino-cli lib install --git-url "https://github.com/sparkfun/XBeeArduino.git"
           arduino-cli lib install FastLED
 
       # Compile time - build the Firmware for the data logger.
@@ -81,6 +81,7 @@ jobs:
       - name: Compile DataLogger firmware binary
         run:
           arduino-cli compile --fqbn rp2040:rp2040:sparkfun_iotnode_lorawanrp2350 ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
+          --build-property "compiler.cpp.extra_flags=\"-DIOT_NODE_LORAWAN_APP_KEY=$IOT_NODE_LORAWAN_APP_KEY\" \"-DFLX_SPARKFUN_LORAWAN_APP_EUI=$FLX_SPARKFUN_LORAWAN_APP_EUI\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, paritions, firmware

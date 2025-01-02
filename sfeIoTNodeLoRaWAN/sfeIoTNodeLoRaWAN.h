@@ -2,7 +2,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -22,7 +22,7 @@
 #include <Flux/flxSettings.h>
 #include <Flux/flxSettingsSerial.h>
 #include <Flux/flxStorageKVPPref.h>
-// #include <Flux/flxSysFirmware.h>
+#include <Flux/flxSystem.h>
 
 #include "flxLoRaWANDigi.h"
 #include "flxLoRaWANLogger.h"
@@ -31,7 +31,7 @@
 // Buffer size of our JSON document output
 const uint16_t kAppJSONDocSize = 1600;
 // Default log interval in milli secs
-const uint16_t kDefaultLogInterval = 15000;
+const uint16_t kDefaultLogInterval = 45000;
 
 // What is the out of the box baud rate ..
 const uint32_t kDefaultTerminalBaudRate = 115200;
@@ -52,8 +52,10 @@ const uint32_t kBatteryCheckInterval = 90000;
 #define kAppOpStartNoAutoload (1 << 3)
 #define kAppOpStartListDevices (1 << 4)
 #define kAppOpStartNoSettings (1 << 5)
+#define kAppOpStartVerboseOutput (1 << 6)
 
-#define kAppOpStartAllFlags (kAppOpStartNoAutoload | kAppOpStartListDevices | kAppOpStartNoSettings)
+#define kAppOpStartAllFlags                                                                                            \
+    (kAppOpStartNoAutoload | kAppOpStartListDevices | kAppOpStartNoSettings | kAppOpStartVerboseOutput)
 
 #define inOpMode(__mode__) ((_opFlags & __mode__) == __mode__)
 #define setOpMode(__mode__) _opFlags |= __mode__
@@ -105,14 +107,21 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     std::string get_local_name(void);
     void set_local_name(std::string name);
 
+    bool get_verbose(void);
+    void set_verbose(bool enable);
+
     void onSettingsEdit(bool bLoading);
     void onSystemActivity(void);
     void onSystemActivityLow(void);
+
+    // event callback for system reset
+    void onSystemResetEvent(void);
 
     void onErrorMessage(uint8_t);
     void onLogEvent(void);
     void onQwiicButtonEvent(bool);
     void onLoRaWANSendEvent(bool);
+    void onLoRaWANReceiveEvent(uint32_t);
 
     // support for onInit
     void onInitStartupCommands(uint32_t);
@@ -163,6 +172,10 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     // startup delay setting
     flxPropertyUInt32<sfeIoTNodeLoRaWAN> startupDelaySecs = {0, 60};
 
+    // Verbose messages enabled?
+    flxPropertyRWBool<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_verbose, &sfeIoTNodeLoRaWAN::set_verbose>
+        verboseEnabled = {false};
+
   private:
     friend class sfeNLCommands;
     void _displayAboutObjHelper(char, const char *, bool);
@@ -171,8 +184,19 @@ class sfeIoTNodeLoRaWAN : public flxApplication
 
     void getStartupProperties(uint32_t &baudRate, uint32_t &startupDelay);
 
+    // Board button callbacks
+    void onButtonPressed(uint32_t);
+    void onButtonReleased(uint32_t);
+
+    // need a restart message
+    void onNeedsRestart(void);
+
     // battery level checks
     void checkBatteryLevels(void);
+
+    // setup routines
+    bool setupTime();
+    void setupENS160(void);
 
     // Our LoRaWAN network/connection object
     flxLoRaWANDigi _loraWANConnection;
@@ -196,10 +220,8 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     flxStorageKVPPref _sysStorage;
     flxKVPStoreDeviceRP2 _sysStorageDevice;
 
-    // Our firmware Update/Reset system
-    // flxSysFirmware _sysUpdate;
-    // for our button events of the board
-    // sfeDLButton _boardButton;
+    // Our system Control
+    flxSystem _sysSystem;
 
     // Fuel gauge
     flxDevMAX17048 *_fuelGauge;

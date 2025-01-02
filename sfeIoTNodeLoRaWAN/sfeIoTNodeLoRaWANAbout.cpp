@@ -1,7 +1,7 @@
 /*
  *---------------------------------------------------------------------------------
  *
- * Copyright (c) 2024, SparkFun Electronics Inc.
+ * Copyright (c) 2024-2025, SparkFun Electronics Inc.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -14,6 +14,7 @@
 
 #include "sfeIoTNodeLoRaWAN.h"
 #include <Flux/flxClock.h>
+#include <Flux/flxPlatform.h>
 #include <Flux/flxSerial.h>
 
 void sfeIoTNodeLoRaWAN::_displayAboutObjHelper(char pre_ch, const char *szName, bool enabled)
@@ -81,10 +82,13 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     }
 
     flxLog__(logLevel, "%cStatus: %s", pre_ch, _loraWANConnection.isConnected() ? "Connected" : "Disconnected");
-    if (_loraWANConnection.isConnected())
-    {
-        flxLog__(logLevel, "%cDevice EUI: %s", pre_ch, _loraWANConnection.deviceEUI());
-    }
+
+    flxLog__(logLevel, "%cDevice EUI: %s", pre_ch, _loraWANConnection.deviceEUI());
+    flxLog__(logLevel, "%cApplication EUI: %s", pre_ch, _loraWANConnection.appEUI().c_str());
+    flxLog__(logLevel, "%cOperating Class: '%s'", pre_ch,
+             _loraWANConnection.kLoRaWANClasses[_loraWANConnection.loraWANClass()]);
+    flxLog__(logLevel, "%cOperating Region: '%s'", pre_ch, _loraWANConnection.getRegionName());
+
     flxLog_N("");
     if (!useInfo)
     {
@@ -97,6 +101,14 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cBoard ID: %s", pre_ch, flux.deviceId());
 
     flxLog_N("");
+    if (verboseEnabled())
+    {
+        flxLog___(logLevel, "%cVerbose Messaging: ", pre_ch);
+        flxSerial.textToWhite();
+        flxLog_N("Enabled");
+        flxSerial.textToNormal();
+        flxLog_N("");
+    }
 
     if (!useInfo)
     {
@@ -115,31 +127,25 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     //     flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));
     //     flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
 
-    //     flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)", pre_ch, _theSDCard.type(),
+    //     flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)", pre_ch,
+    //     _theSDCard.type(),
     //              szSize, szCap, szAvail, 100. - (_theSDCard.used() / (float)_theSDCard.total() * 100.));
     // }
     // else
     //     flxLog__(logLevel, "%cSD card not available", pre_ch);
 
-    // // show heap level
-    // flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, ESP.getHeapSize(), ESP.getFreeHeap(),
-    //          (float)ESP.getFreeHeap() / (float)ESP.getHeapSize() * 100.);
+    // show heap level
+    flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, flxPlatform::heap_size(),
+             flxPlatform::heap_free(), (float)flxPlatform::heap_free() / (float)flxPlatform::heap_size() * 100.);
 
     // Battery fuel gauge available?
     if (_fuelGauge != nullptr)
     {
-        // Output if a) we have a batter connected, and if so the % charge, and if it's charging
-        float batterySOC = _fuelGauge->getSOC();
-        // Is a battery connected - look at SOC
-        if (batterySOC < kBatteryNoBatterySOC)
-            flxLog__(logLevel, "%cBattery - Level: %c%.1f%%", pre_ch, _fuelGauge->getChangeRate() > 0 ? '+' : ' ',
-                     batterySOC);
-        else
-            flxLog__(logLevel, "%cBattery - Not Connected", pre_ch);
+        // There is no way to detect if a batter is connected using the fuel gauge. Sad...
+        // So we just output the state of charge ...
+        flxLog__(logLevel, "%cFuel Gauge - State of Charge: %c%.1f%%", pre_ch,
+                 _fuelGauge->getChangeRate() > 0 ? '+' : ' ', _fuelGauge->getSOC());
     }
-    // flxLog__(logLevel, "%cSystem Deep Sleep: %s", pre_ch, sleepEnabled() ? "enabled" : "disabled");
-    // flxLog_N("%c    Sleep Interval: %d seconds", pre_ch, sleepInterval());
-    // flxLog_N("%c    Wake Interval: %d seconds", pre_ch, wakeInterval());
 
     flxLog_N("");
     if (!useInfo)
@@ -157,9 +163,11 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     else
         flxLog_N("%.2f (ms)", _logger.getLogRate());
 
+    flxLog_N("");
     flxLog__(logLevel, "%cJSON Buffer - Size: %dB Max Used: %dB", pre_ch, jsonBufferSize(), _fmtJSON.getMaxSizeUsed());
     flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog_N("%c    Baud Rate: %d", pre_ch, serialBaudRate());
+
     // flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
 
     // at startup, useInfo == true, the file isn't known, so skip output
