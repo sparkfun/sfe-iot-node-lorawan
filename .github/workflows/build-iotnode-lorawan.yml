@@ -1,8 +1,8 @@
 name: IoT Node - LoRaWAN -  Firmware build Action
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
 
   workflow_dispatch:
     branches:
