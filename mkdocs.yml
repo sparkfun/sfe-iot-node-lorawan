@@ -251,6 +251,8 @@ nav:
     - Introduction: introduction.md
   - Advanced:
     - Data Encoding: data_encoding.md
+    - Console Commands: console_commands.md
+    - Verbose Output: verbose_output.md
   - Support:
     - Troubleshooting: troubleshooting.md
     - Submit Issues: github/file_issue.md
