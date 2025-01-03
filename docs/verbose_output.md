@@ -38,8 +38,9 @@ The following is an example of the Value Type codes for the BME280 device:
 
 On this page, the parameters that have **Value Types** codes are enabled for LoRaWAN transmission. 
 
-> [!NOTE]
-> Parameters that are disabled are not sent to the LoRaWAN.
+### Disabled Parameters
+
+Note - Parameters that are disabled are not sent to the LoRaWAN.
 
 ## Startup Messages
 
