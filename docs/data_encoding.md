@@ -127,4 +127,42 @@ The following table outlines the sensors and data encoding used by the IoT Node 
 || CIEx| CIE_X || double|
 || CIEy | CIE_Y || double|
 || CIET | CCT || double|
+|RV8803 RTC|||||
+|| Epoch| Epoch|| uint32|
+|SCD40 CO2 Sensor|||||
+|| CO2 (PPM)| CO2_U32 || uint32|
+|| Temperature (C) | TempC || float|
+|| Humidity (%RH) | Humidity_F || float|
+|SGP30 Air Quality Sensor|||||
+|| CO2 (PPM)| CO2_U32 || uint32|
+|| TVOC (PPB) | TVOC_U32 || uint32|
+|| H2 (PPM)| H2 || uint32|
+|| Ethanol (PPM)| ETOH_U32 || uint32|
+|SGP40 Air Quality Sensor|||||
+|| TVOC (PPB) | TVOC_U32 || uint32|
+|SHTC3 Humidity and Temperature Sensor|||||
+|| Temperature (F) | TempF || float|
+|| Temperature (C) | TempC || float|
+|| Humidity (%RH) | Humidity_F || float|
+|STC31 CO2 Sensor|||||
+|| CO2 (%) | CO2_F || float|
+|| Temperature (C) | TempC || float|
+|Human Presence Sensor|||||
+||Presence (cm^-1) | Presence || int16|
+|| Motion (LSB) | Motion || int16|
+|TMP117 Precision Temperature Sensor|||||
+||Temperature (C)| TempC || float|
+|VCNL4040 Proximity Sensor|||||
+|| Proximity | Proximity || uint16|
+|| Lux | LUX_U16 || uint16|
+|VEML6075 UV Sensor|||||
+|| UVA Level | UVAIndex || float|
+|| UVB Level | UVBIndex || float|
+|| UV Index | UVIndex || float|
+|VEML7700 Ambient Light Sensor|||||
+|| Ambient Light Level | AmbientLight || uint32|
+|| White Level | WhiteLight || uint32|
+||Lux| LUX_F || float|
+|VL53L1X Distance Sensor|||||
+||Distance (mm)| Distance || unit32|
 
