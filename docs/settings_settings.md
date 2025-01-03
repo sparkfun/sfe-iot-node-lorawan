@@ -168,3 +168,77 @@ When selected, the user is prompted to restart the device/system. This is also a
 #### Device Reset
 
 When selected, the user is prompted to reset the device/system. A device reset erases the current saved settings values and restarts the board/system. This is also available using the `!reset-device` console command.
+
+### Time Setup
+
+By default the IOT Node - LoRaWAN is not connected to a timekeeping source and defaults to a start time value of January 1, 1970 (epoch value of 0). But if a time keeping device is added (GNSS or Real Time Clock), this page is used to set time parameters for the board.
+
+The Time Setup property page has the following entries:
+
+![Time Setup](assets/img/settings_time.png)
+
+#### Time Zone
+
+The timezone specification string to use for the system clock. By default, the Mountain Time zone (the zone of SparkFun) is used. 
+
+#### Reference Clock
+
+If a reference clock device is connected to the IoT Node board, use this option to select this clock. 
+
+#### Update Interval 
+
+Specify how often the system clock is updated using the reference clock in minutes.
+
+
+#### Enable Clock Fallback
+
+Adds a secondary reference clock to use if the primary clock becomes unavailable. 
+
+#### Dependant Interval 
+
+If a *dependant* clock is connected (a clock being set by the system clock), this value sets how often the dependant clock device is updated.
+
+#### Update Connected
+
+If enabled, any connected clocks have their time updated when the system clock is updated.
+
+### Save Settings
+
+The Save Settings system is designed to include a "fallback" settings system if available. Normally this might be a JSON file on a SDCard or similar device. At launch, this functionality is not available for the IoT Node - LoRaWAN board.
+
+
+The Save Settings property page has the following elements:
+
+![Save Settings](assets/img/settings_save_settings.png)
+
+#### Fallback Restore
+
+If enabled, restore settings from the fallback system if the primary storage system is unavailable or empty. 
+
+#### Fallback Save 
+
+If enabled and a fallback device is available, saving settings to primary storage also saves them to the secondary device.
+
+#### Buffer Size 
+
+The buffer size used for internal I/O operations. This is not used for the IoT Node Board. 
+
+#### Save Settings
+
+When called, the current value of the systems settings is saved to the primary persistent storage system.
+
+#### Restore Settings
+
+When called, systems settings are restore from the primary storage system.
+
+#### Clear Settings
+
+When called, the primary (on board) settings storage is erased/reset.
+
+#### Save to Fallback
+
+If a fallback device is available, when this function is called, system settings are saved to the fallback device.
+
+#### Restore from Fallback
+
+If a fallback device is available, when this function is called, system settings are restored from the fallback device.
