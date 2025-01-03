@@ -20,8 +20,7 @@ The IoT Node - LoRaWAN firmware is highly configurable via an easily to use seri
 ## Documentation
 
 * **[Hardware Hookup Guide](https://docs.sparkfun.com/SparkFun_IoT_Node_LoRaWAN/quick_start/)** - Basic hookup guide for the SparkFun IoT Node - LoRaWAN board
-* **GitHub Hardware Repo**
-  * **[SparkFun IoT Node - LoRaWAN](https://github.com/sparkfun/SparkFun_IoT_Node_LoRaWAN)**
+* **[SparkFun IoT Node - LoRaWAN](https://github.com/sparkfun/SparkFun_IoT_Node_LoRaWAN)** - Hardware Repo for the IoT Node board
   
 ## Supported Products
 
