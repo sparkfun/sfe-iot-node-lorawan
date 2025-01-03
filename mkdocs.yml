@@ -251,6 +251,7 @@ nav:
     - Introduction: introduction.md
   - Getting Started: 
     - Getting Started: getting_started.md
+    - Other Features: other_features.md
   - Settings:
     - Overview: settings_overview.md
     - Settings: settings_settings.md
