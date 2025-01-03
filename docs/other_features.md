@@ -36,3 +36,16 @@ The SparkFun IoT Node - LoRaWAN board has a "user button". When pressed, the but
 |--|--|
 |Momentary Press|When the button is momentary pressed, a log-event is triggered.|
 |Pressed and Held| When the on-board is pressed and held down for 30 seconds, the IoT Node - LoRaWAN board is reset: settings are erased and the board restarted.|
+
+## LED Flashes
+
+During the normal course of operation, the IoT Node - LoRaWAN board firmware will enable and flash the on-board LED as an operational indicator. The following table outlines what each LED value indicates:
+
+|Color|Flash|Description
+|--|--|--|
+|Green| No | System Startup|
+|White | No | Settings Menu is use|
+|Blue | Blink | Logging event triggered|
+|Green | Blink | Data sent to the LoRaWAN|
+|Yellow | Flashing | User button held down - faster blink over time|
+|Red | Flashing | User button held down - about to reset the board|
