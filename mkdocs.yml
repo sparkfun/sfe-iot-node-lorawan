@@ -251,6 +251,10 @@ nav:
     - Introduction: introduction.md
   - Getting Started: 
     - Getting Started: getting_started.md
+  - Settings:
+    - Overview: settings_overview.md
+    - Settings: settings_settings.md
+    - Device Settings: settings_devices.md
   - Advanced:
     - Data Encoding: data_encoding.md
     - Console Commands: console_commands.md
