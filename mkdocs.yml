@@ -249,6 +249,7 @@ extra_javascript:
 nav:
   - Getting Started:
     - Introduction: introduction.md
+  - Advanced:
     - Data Encoding: data_encoding.md
   - Support:
     - Troubleshooting: troubleshooting.md
