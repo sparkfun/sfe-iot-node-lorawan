@@ -247,8 +247,8 @@ extra_javascript:
 
 # Configures webpage navigation
 nav:
-  - Getting Started:
-    - Introduction: introduction.md
+  - Home: introduction.md
+  - Getting Started: getting_started.md
   - Advanced:
     - Data Encoding: data_encoding.md
     - Console Commands: console_commands.md

@@ -21,7 +21,6 @@ The IoT Node - LoRaWAN firmware is highly configurable via an easily to use seri
 
 Details are outlined in [IoT Node - LoRaWAN Documentation](https://docs.sparkfun.com/sfe-iot-node-lorawan).
 
-The functionality of the DataLogger IoT firmware will continue to grow as SparkFun develops new Qwiic sensor boards, adds additional IoT services and product features. The board is easily updated via the on-board settings system. See below for future information on updates and the latest Firmware release.  
 
 ## Latest Firmware
 
