@@ -74,95 +74,95 @@ The following table outlines the sensors and data encoding used by the IoT Node 
 | Sensor | Parameter | Value Type | Value Type Code | Data Type |
 | -- | -- | -- | -- | -- |
 | BME688  | |  |  ||
-|  | Humidity | Humidity_F |  | float|
-| | Temperature C | TempC | | float|
-| | Pressure | Pressure_F | | float|
+|  | Humidity | Humidity_F | 8 | float|
+| | Temperature C | TempC |10 | float|
+| | Pressure | Pressure_F |9 | float|
 | BME280 | ||||
-|| Humidity |Humidity_F | | float|
-|| Temperature F | TempF || float|
-|| Temperature C | TempC || float|
+|| Humidity |Humidity_F |8 | float|
+|| Temperature F | TempF |11| float|
+|| Temperature C | TempC |10| float|
 |BMP384|||||
-|| Temperature C | TempC_D ||double|
-|| Presure (Pa)| Pressure_D || double|
+|| Temperature C | TempC_D |50|double|
+|| Presure (Pa)| Pressure_D |51| double|
 |BMP581|||||
-|| Pressure (Pa) | Pressure_F || float|
-|| Temperature C | TempC || float|
+|| Pressure (Pa) | Pressure_F |9| float|
+|| Temperature C | TempC |10| float|
 |CCS811|||||
-|| CO2 | CO2_F || float|
-|| VOC| TVOC || float|
+|| CO2 | CO2_F |13| float|
+|| VOC| TVOC |12| float|
 |ENS160|||||
-|| Equivalent CO2 | CO2 || uint16|
-|| TVOC| VOC || unit16|
+|| Equivalent CO2 | CO2 |6| uint16|
+|| TVOC| VOC |4| unit16|
 ||Ethanol Concentration | ETOH || uint16 |
-|| Air Quality Index | AQI || uint8 |
+|| Air Quality Index | AQI |5| uint8 |
 |FS3000|||||
-|| Flow (MPS) | MPS || float|
-|| FLow (MPH) | MPH || float|
+|| Flow (MPS) | MPS |14| float|
+|| FLow (MPH) | MPH |15| float|
 |GNSS|||||
-|| Latitude in Degrees | Latitude || double|
-|| Longitude in Degrees| Longitude || double|
-|| Altitude (meters) | Altitude || double|
+|| Latitude in Degrees | Latitude |16| double|
+|| Longitude in Degrees| Longitude |17| double|
+|| Altitude (meters) | Altitude |18| double|
 |ISM330|||||
-|| Accelerometer X (milli-g)| AccelX || float|
-|| Accelerometer Y (milli-g)| AccelY || float|
-|| Accelerometer Z (milli-g)| AccelZ || float|
-|| Gyro X (milli-dps)| GyroX || float|
-|| Gyro Y (milli-dps)| GyroY || float|
-|| Gyro Z (milli-dps)| GyroZ || float|
+|| Accelerometer X (milli-g)| AccelX |19| float|
+|| Accelerometer Y (milli-g)| AccelY |20| float|
+|| Accelerometer Z (milli-g)| AccelZ |21| float|
+|| Gyro X (milli-dps)| GyroX |22| float|
+|| Gyro Y (milli-dps)| GyroY |23| float|
+|| Gyro Z (milli-dps)| GyroZ |24| float|
 |LPS25HB|||||
-|| Pressure (hPa) | Pressure_F || float|
-|| Temperature C | TempC || float|
+|| Pressure (hPa) | Pressure_F |9| float|
+|| Temperature C | TempC |10| float|
 |MAX17048|||||
-|| Voltage (V)| BatteryVoltage || float|
-|| State Of Charge (%) | BatteryCharge || float|
-|| Change Rate (%/hr) | BatteryChargeRate || float|
+|| Voltage (V)| BatteryVoltage |48| float|
+|| State Of Charge (%) | BatteryCharge |47| float|
+|| Change Rate (%/hr) | BatteryChargeRate |49| float|
 |Micro Pressure|||||
-|| Pressure (Pa)| Pressure_F || float|
+|| Pressure (Pa)| Pressure_F |9| float|
 |MS5637|||||
-|| Pressure (mBar) | Pressure_mBar || float|
-|| Temperature C | TempC || float|
+|| Pressure (mBar) | Pressure_mBar |25| float|
+|| Temperature C | TempC |10| float|
 |NAU7802|||||
-|| Weight| WeightUserUnits|| float|
+|| Weight| WeightUserUnits|26| float|
 |OPT4048|||||
-|| CIEx| CIE_X || double|
-|| CIEy | CIE_Y || double|
-|| CIET | CCT || double|
+|| CIEx| CIE_X |27| double|
+|| CIEy | CIE_Y |28| double|
+|| CIET | CCT |29| double|
 |RV8803 RTC|||||
-|| Epoch| Epoch|| uint32|
+|| Epoch| Epoch|31| uint32|
 |SCD40 CO2 Sensor|||||
-|| CO2 (PPM)| CO2_U32 || uint32|
-|| Temperature (C) | TempC || float|
-|| Humidity (%RH) | Humidity_F || float|
+|| CO2 (PPM)| CO2_U32 |32| uint32|
+|| Temperature (C) | TempC |10| float|
+|| Humidity (%RH) | Humidity_F |8| float|
 |SGP30 Air Quality Sensor|||||
-|| CO2 (PPM)| CO2_U32 || uint32|
-|| TVOC (PPB) | TVOC_U32 || uint32|
-|| H2 (PPM)| H2 || uint32|
-|| Ethanol (PPM)| ETOH_U32 || uint32|
+|| CO2 (PPM)| CO2_U32 |32| uint32|
+|| TVOC (PPB) | TVOC_U32 |33| uint32|
+|| H2 (PPM)| H2 |34| uint32|
+|| Ethanol (PPM)| ETOH_U32 |35| uint32|
 |SGP40 Air Quality Sensor|||||
-|| TVOC (PPB) | TVOC_U32 || uint32|
+|| TVOC (PPB) | TVOC_U32 |33| uint32|
 |SHTC3 Humidity and Temperature Sensor|||||
-|| Temperature (F) | TempF || float|
-|| Temperature (C) | TempC || float|
-|| Humidity (%RH) | Humidity_F || float|
+|| Temperature (F) | TempF |11| float|
+|| Temperature (C) | TempC |10| float|
+|| Humidity (%RH) | Humidity_F |8| float|
 |STC31 CO2 Sensor|||||
-|| CO2 (%) | CO2_F || float|
-|| Temperature (C) | TempC || float|
+|| CO2 (%) | CO2_F |13| float|
+|| Temperature (C) | TempC |10| float|
 |Human Presence Sensor|||||
-||Presence (cm^-1) | Presence || int16|
-|| Motion (LSB) | Motion || int16|
+||Presence (cm^-1) | Presence |36| int16|
+|| Motion (LSB) | Motion |37| int16|
 |TMP117 Precision Temperature Sensor|||||
-||Temperature (C)| TempC || float|
+||Temperature (C)| TempC |10| float|
 |VCNL4040 Proximity Sensor|||||
-|| Proximity | Proximity || uint16|
-|| Lux | LUX_U16 || uint16|
+|| Proximity | Proximity |38| uint16|
+|| Lux | LUX_U16 |39| uint16|
 |VEML6075 UV Sensor|||||
-|| UVA Level | UVAIndex || float|
-|| UVB Level | UVBIndex || float|
-|| UV Index | UVIndex || float|
+|| UVA Level | UVAIndex |40| float|
+|| UVB Level | UVBIndex |41| float|
+|| UV Index | UVIndex |42| float|
 |VEML7700 Ambient Light Sensor|||||
-|| Ambient Light Level | AmbientLight || uint32|
-|| White Level | WhiteLight || uint32|
-||Lux| LUX_F || float|
+|| Ambient Light Level | AmbientLight |44| uint32|
+|| White Level | WhiteLight |45| uint32|
+||Lux| LUX_F |43| float|
 |VL53L1X Distance Sensor|||||
-||Distance (mm)| Distance || unit32|
+||Distance (mm)| Distance |46| unit32|
 
