@@ -47,6 +47,12 @@ So for a 11 byte LoRaWAN Payload buffer, the contents could be (note a Value Typ
 * \[ **Value Type**][**Data Value** *{2 bytes}*]\[ **Value Type**][**Data Value** *{4 bytes}*]\[**empty** {3 byte}]  = **8 bytes used***
 * \[ **Value Type**][**Data Value** *{2 bytes}*]\[ **Value Type**][**Data Value** *{4 bytes}*]\[ **Value Type**][**Data Value** *{2 bytes}*] =  **11 bytes used**
 
+The following example uses *verbose* output from a data collection and send event to show how the data is packed:
+
+![Packing in Action](assets/img/advanced-data-encoding-output.png)
+
+In this image, the Value Type IDs and encoded for each value is highlighted individually and as part of the packed data payload.
+
 The general payload packing is as follows:
 
 ### *Initial Condition*
