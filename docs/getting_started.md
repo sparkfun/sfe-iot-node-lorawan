@@ -8,9 +8,23 @@ To get started, you'll need to have access to an HX15 Gateway (NA or EU version)
 
 ## Registering the IoT Node - LoRaWAN 
 
+### Provisioning
+
 To provision a IoT Node - LoRaWAN device, go to the following link, log in if necessary, and scan the Data Matrix on the XBee Module using the [Digi Scan page](https://scan-us1.haxiot.com/). 
 
 Note - if the DataMatrix scan is out-of-focus and unable to resolve, wait a few seconds and a manual entry prompt will appear on Digi Scan. From here you manually enter the modules serial number. 
+
+Using the mobile interface, the module registration scan has the following appearance, with a provisioning screen shown once the data module is detected:
+
+![Data Dot Scan](assets/img/digi-lora-scan-begin.png)
+
+Once scanned, attributes are entered and the Application for the board selected - in this case the application is ***Sparkfun IoT Node***:
+
+
+And once the *PROVISION* button is pressed, the following status/steps are show in the application as the module is provisioned...
+
+![Provising](assets/img/digi-lora-provision-end.png)
+
 
 After you device is registered with your account, it will be listed in the device section of you XON account.
 
@@ -18,7 +32,7 @@ After you device is registered with your account, it will be listed in the devic
 
 Device listing
 
-![XON A Device](assets/img/digi-xon-a-device.png)
+![XON A Device](assets/img/digi-device-list.png)
 
 From the specific device page, the messages sent by the device are listed. The ***Data*** column contains the message data.
 
