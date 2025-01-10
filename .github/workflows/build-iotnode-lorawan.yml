@@ -70,7 +70,7 @@ jobs:
       - name: Install The XBee LoRaWAN library
         run: |
           arduino-cli config set library.enable_unsafe_install true
-          arduino-cli lib install --git-url "https://github.com/sparkfun/XBeeArduino.git"
+          arduino-cli lib install --git-url "https://github.com/digidotcom/XBeeArduino"
           arduino-cli lib install FastLED
 
       # Compile time - build the Firmware for the data logger.

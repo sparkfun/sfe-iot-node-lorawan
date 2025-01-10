@@ -340,6 +340,22 @@ bool flxLoRaWANDigi::configureModule(void)
 
     flxLog_N_(F("."));
 
+    // Set the region
+    flxLog_N_(F(". settingthe LoRaWAN Region to `%s`["), name(), getRegionName());
+    if (!_pXBeeLR->setLoRaWANRegion(_lora_region))
+    {
+        flxSerial.textToYellow();
+        flxLog_N_(F("failed"));
+    }
+    else
+    {
+        flxSerial.textToGreen();
+        flxLog_N_(F("ok"));
+    }
+    flxSerial.textToNormal();
+    flxLog_N_(F("] "));
+    flxLog_N_(F("."));
+
     // Save the config to the module
     if (!_pXBeeLR->writeConfig())
     {
