@@ -1,11 +1,14 @@
 name: IoT Node - LoRaWAN -  Firmware build Action
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
 
   workflow_dispatch:
     branches:
+      - 'main'
+      - 'develop'
+      - 'feature/**'
+      - 'release/**'
+      - 'hotfix/**'
 
 env:
   ARDUINO_RP2040_DIR: .arduino15/packages/rp2040/hardware/rp2040/4.3.1
@@ -20,8 +23,6 @@ jobs:
     steps:
       - name: Checkout Repo and submodules
         uses: actions/checkout@v3
-        with:
-          ref: main
 
       # checkout flux-sdk
       - name: Checkout the flux-sdk
