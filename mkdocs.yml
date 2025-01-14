@@ -8,7 +8,7 @@ repo_url: https://github.com/sparkfun/sfe-iot-node-lorawan
 repo_name: sparkfun/sfe-iot-node-lorawan
 
 copyright:
-  Copyright 2023 - <a href="https://www.sparkfun.com/" target="_blank" rel="noopener">SparkFun Electronics&#174;<br>
+  Copyright 2025 - <a href="https://www.sparkfun.com/" target="_blank" rel="noopener">SparkFun Electronics&#174;<br>
   <a href="https://goo.gl/maps/vkstCpQZW6jZMjzYA" target="_blank" rel="noopener">6333 Dry Creek Parkway, Niwot, Colorado 80503</a>
 
 # Default edit/view actions to "main" branch, instead of "master"
@@ -247,8 +247,19 @@ extra_javascript:
 
 # Configures webpage navigation
 nav:
-  - Getting Started:
+  - Home: 
     - Introduction: introduction.md
+  - Getting Started: 
+    - Getting Started: getting_started.md
+    - Other Features: other_features.md
+  - Settings:
+    - Overview: settings_overview.md
+    - Settings: settings_settings.md
+    - Device Settings: settings_devices.md
+  - Advanced:
+    - Data Encoding: data_encoding.md
+    - Console Commands: console_commands.md
+    - Verbose Output: verbose_output.md
   - Support:
     - Troubleshooting: troubleshooting.md
     - Submit Issues: github/file_issue.md
