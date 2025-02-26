@@ -57,7 +57,8 @@ flux_sdk_add_module(
     device_vcnl4040
     device_veml6075
     device_veml7700
-    device_vl53l1x)
+    device_vl53l1x
+    device_soilmoisture)
 
 # now call the init function/macro - this will build the Arduino Library SparkFun_Flux under this
 # main directory
