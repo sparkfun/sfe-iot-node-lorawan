@@ -27,7 +27,7 @@ jobs:
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch release/iot-node-lorawan-release https://github.com/sparkfun/flux-sdk.git
+          git clone --branch release/iot-node-lorawan-release-v1.0.0 https://github.com/sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
@@ -86,7 +86,7 @@ jobs:
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, paritions, firmware
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: Upload Build
           path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_iotnode_lorawanrp2350/sfeIoTNodeLoRaWAN.ino.uf2

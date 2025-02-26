@@ -8,7 +8,7 @@ Firmware and associated Documentation and Firmware for the SparkFun IoT Node - L
 ![Release](https://img.shields.io/github/v/release/sparkfun/sfe-iot-node-lorawan)
 ![Release Date](https://img.shields.io/github/release-date/sparkfun/sfe-iot-node-lorawan?display_date=published_at)
 ![Documentation - build](https://img.shields.io/github/actions/workflow/status/sparkfun/sfe-iot-node-lorawan/pages%2Fpages-build-deployment?label=Documentation)
-[![IoT Node - LoRaWAN - build](https://github.com/sparkfun/sfe-iot-node-lorawan/actions/workflows/build-iotnode-lorawan-develop.yml/badge.svg)](https://github.com/sparkfun/sfe-iot-node-lorawan/actions/workflows/build-iotnode-lorawan-develop.yml)
+[![IoT Node - LoRaWAN - build](https://github.com/sparkfun/sfe-iot-node-lorawan/actions/workflows/build-iotnode-lorawan.yml/badge.svg)](https://github.com/sparkfun/sfe-iot-node-lorawan/actions/workflows/build-iotnode-lorawan.yml)
 ![GitHub issues](https://img.shields.io/github/issues/sparkfun/sfe-iot-node-lorawan)
 
 This repository contains the latest firmware for the SparkFun IoT Node - LoRaWAN development board. While the IoT Node - LoRaWAN development board is programmable using Arduino, the IoT Node - LoRa board ships with a firmware application that enables rapid sensor definition and deployment on a Digi LoRaWAN XON network. This repository contains the source for this LoRaWAN application and well as firmware releases.
