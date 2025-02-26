@@ -27,7 +27,7 @@ jobs:
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch release/iot-node-lorawan-release https://github.com/sparkfun/flux-sdk.git
+          git clone --branch release/iot-node-lorawan-release-v1.0.0 https://github.com/sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
