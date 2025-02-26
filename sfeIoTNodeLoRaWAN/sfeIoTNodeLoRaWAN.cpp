@@ -500,7 +500,11 @@ uint8_t sfeIoTNodeLoRaWAN::get_logTypeSer(void)
 {
     return _logTypeSer;
 }
-//---------------------------------------------------------------------------
+/**
+ * @brief      Sets the log type for serial output
+ *
+ * @param[in]  logType  The log type
+ */
 void sfeIoTNodeLoRaWAN::set_logTypeSer(uint8_t logType)
 {
     if (logType == _logTypeSer)
@@ -521,11 +525,22 @@ void sfeIoTNodeLoRaWAN::set_logTypeSer(uint8_t logType)
 
 //---------------------------------------------------------------------------
 // local/board name things
+/**
+ * @brief      Getter for the  the local name property
+ *
+ * @return     The local name.
+ */
+
 std::string sfeIoTNodeLoRaWAN::get_local_name(void)
 {
     return flux.localName();
 }
 //---------------------------------------------------------------------------
+/**
+ * @brief      Setter for the local name property
+ *
+ * @param[in]  name  The name
+ */
 
 void sfeIoTNodeLoRaWAN::set_local_name(std::string name)
 {
@@ -730,7 +745,7 @@ void sfeIoTNodeLoRaWAN::checkBatteryLevels(void)
 }
 
 //---------------------------------------------------------------------------
-// Terminal Baudrate things
+// Terminal Baud-rate things
 //---------------------------------------------------------------------------
 uint32_t sfeIoTNodeLoRaWAN::get_termBaudRate(void)
 {
