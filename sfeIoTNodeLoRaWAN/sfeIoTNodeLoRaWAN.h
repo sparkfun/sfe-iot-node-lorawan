@@ -18,6 +18,7 @@
 #include <Flux/flxTimer.h>
 
 #include <Flux/flxDevMAX17048.h>
+#include <Flux/flxDevSoilMoisture.h>
 #include <Flux/flxKVPStoreDeviceRP2.h>
 #include <Flux/flxSettings.h>
 #include <Flux/flxSettingsSerial.h>
@@ -225,6 +226,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
 
     // Fuel gauge
     flxDevMAX17048 *_fuelGauge;
+
+    // The soil moisture device object -- if a user connects it to the GPIO of the device.
+    flxDevSoilMoisture _soilSensor;
 
     // for our button events of the board
     sfeNLButton _boardButton;

@@ -50,6 +50,11 @@ const uint8_t kLoRaWANMsgLEDFlash = 0x05;
 const uint8_t kLoRaWANMsgLEDBrightness = 0x06;
 //---------------------------------------------------------------------------
 
+// The default Soil Sensor pins
+const uint8_t kSoilSensorVCCPin = 28;
+const uint8_t kSoilSensorSensorPin = 29;
+//---------------------------------------------------------------------------
+
 // Application keys - used to encrypt runtime secrets for the app.
 //
 // NOTE: Gen a base 64 key  % openssl rand -base64 32
@@ -354,6 +359,13 @@ void sfeIoTNodeLoRaWAN::onDeviceLoad()
 
     for (auto b : *buttons)
         b->on_clicked.call(this, &sfeIoTNodeLoRaWAN::onQwiicButtonEvent);
+
+    // setup our soil sensor device
+
+    _soilSensor.vccPin = kSoilSensorVCCPin;
+    _soilSensor.sensorPin = kSoilSensorSensorPin;
+    _soilSensor.initialize();
+    flux_add(_soilSensor);
 }
 //---------------------------------------------------------------------------
 //
@@ -396,8 +408,10 @@ bool sfeIoTNodeLoRaWAN::onStart()
             flxLog_N_(F("    %-20s  - %-40s  {"), device->name(), device->description());
             if (device->getKind() == flxDeviceKindI2C)
                 flxLog_N("%s x%x}", "qwiic", device->address());
-            else
+            else if (device->getKind() == flxDeviceKindSPI)
                 flxLog_N("%s p%u}", "SPI", device->address());
+            else if (device->getKind() == flxDeviceKindGPIO)
+                flxLog_N("%s pin %u}", "GPIO", device->address());
 
             if (device->nOutputParameters() > 0)
             {
