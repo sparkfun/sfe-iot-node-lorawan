@@ -111,6 +111,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     bool get_verbose(void);
     void set_verbose(bool enable);
 
+    bool get_soil_enabled(void);
+    void set_soil_enabled(bool enable);
+
     void onSettingsEdit(bool bLoading);
     void onSystemActivity(void);
     void onSystemActivityLow(void);
@@ -176,6 +179,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     // Verbose messages enabled?
     flxPropertyRWBool<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_verbose, &sfeIoTNodeLoRaWAN::set_verbose>
         verboseEnabled = {false};
+
+    flxPropertyRWBool<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_soil_enabled, &sfeIoTNodeLoRaWAN::set_soil_enabled>
+        enableSoilSensor = {false};
 
   private:
     friend class sfeNLCommands;

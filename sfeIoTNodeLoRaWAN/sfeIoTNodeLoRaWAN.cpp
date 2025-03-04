@@ -222,6 +222,8 @@ void sfeIoTNodeLoRaWAN::onInit()
     flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart");
     _terminalBaudRate = kDefaultTerminalBaudRate;
 
+    enableSoilSensor.setTitle("Devices");
+    flxRegister(enableSoilSensor, "Soil Moisture Sensor", "Enable GPIO attached Soil Moisture Sensor");
     // Advanced settings
     verboseDevNames.setTitle("Advanced");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
@@ -361,11 +363,8 @@ void sfeIoTNodeLoRaWAN::onDeviceLoad()
         b->on_clicked.call(this, &sfeIoTNodeLoRaWAN::onQwiicButtonEvent);
 
     // setup our soil sensor device
-
     _soilSensor.vccPin = kSoilSensorVCCPin;
     _soilSensor.sensorPin = kSoilSensorSensorPin;
-    _soilSensor.initialize();
-    flux_add(_soilSensor);
 }
 //---------------------------------------------------------------------------
 //
@@ -411,7 +410,7 @@ bool sfeIoTNodeLoRaWAN::onStart()
             else if (device->getKind() == flxDeviceKindSPI)
                 flxLog_N("%s p%u}", "SPI", device->address());
             else if (device->getKind() == flxDeviceKindGPIO)
-                flxLog_N("%s pin %u}", "GPIO", device->address());
+                flxLog_N("%s p%u}", "GPIO", device->address());
 
             if (device->nOutputParameters() > 0)
             {
@@ -561,6 +560,45 @@ void sfeIoTNodeLoRaWAN::set_local_name(std::string name)
     flux.setLocalName(name);
 }
 
+//---------------------------------------------------------------------------
+// soil sensor enabled/disable
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::set_soil_enabled(bool enable)
+{
+    // Is the soil sensor in the system?
+
+    bool active = flux.contains(_soilSensor);
+    if (active == enable)
+        return; // same
+
+    if (enable)
+    {
+        // is the sensor initialized?
+        if (!_soilSensor.isInitialized())
+        {
+            // init the sensor - this adds to the device list
+            if (_soilSensor.initialize() == false)
+                flxLog_W(F("%s: failed to initialize."), _soilSensor.name());
+        }
+        else
+            flux.add(_soilSensor);
+        _loraWANLogger.add(_soilSensor);
+        _logger.add(_soilSensor);
+    }
+    else
+    {
+        flux.remove(_soilSensor);
+        _loraWANLogger.remove(_soilSensor);
+        _logger.remove(_soilSensor);
+    }
+
+    _soilSensor.isEnabled(enable);
+}
+
+bool sfeIoTNodeLoRaWAN::get_soil_enabled(void)
+{
+    return flux.contains(_soilSensor);
+}
 //---------------------------------------------------------------------------
 // Display things during settings edits
 //---------------------------------------------------------------------------
