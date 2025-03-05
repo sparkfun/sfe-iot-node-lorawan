@@ -22,7 +22,7 @@
 #define kDLVersionNumberPoint 1
 
 // Version string description
-#define kDLVersionDescriptor "Version 1.0.1"
+#define kDLVersionDescriptor "Pre-Release"
 
 // app name/class ID string
 #define kDLAppClassNameID "SFE-IOT-NODE_LORAWAN"
