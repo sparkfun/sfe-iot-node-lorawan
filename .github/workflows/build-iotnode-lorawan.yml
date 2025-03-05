@@ -1,15 +1,12 @@
 name: IoT Node - LoRaWAN -  Firmware build Action
 on:
   push:
+    branches:
+        - main
 
   workflow_dispatch:
     branches:
-      - 'main'
-      - 'develop'
-      - 'feature/**'
-      - 'release/**'
-      - 'hotfix/**'
-
+      
 env:
   ARDUINO_RP2040_DIR: .arduino15/packages/rp2040/hardware/rp2040/4.3.1
   IOT_NODE_LORAWAN_APP_KEY: ${{ secrets.IOT_NODE_LORAWAN_APP_KEY }}
@@ -27,7 +24,7 @@ jobs:
       # checkout flux-sdk
       - name: Checkout the flux-sdk
         run: |
-          git clone --branch release/iot-node-lorawan-release-v1.0.0 https://github.com/sparkfun/flux-sdk.git
+          git clone --branch release/iot-node-lorawan-v1.0.1 https://github.com/sparkfun/flux-sdk.git
           echo "FLUX_SDK_PATH=`pwd`/flux-sdk" >> $GITHUB_ENV
 
       # Run cmake - this will build a custom SparkFun_Flux library we can use with
@@ -85,7 +82,7 @@ jobs:
           --build-property "compiler.cpp.extra_flags=\"-DIOT_NODE_LORAWAN_APP_KEY=$IOT_NODE_LORAWAN_APP_KEY\" \"-DFLX_SPARKFUN_LORAWAN_APP_EUI=$FLX_SPARKFUN_LORAWAN_APP_EUI\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
-      # Upload the build files - bootloader, paritions, firmware
+      # Upload the build files - bootloader, partitions, firmware
       - uses: actions/upload-artifact@v4
         with:
           name: Upload Build
