@@ -9,6 +9,7 @@
  */
 
 #include "flxLoRaWANLogger.h"
+#include <Flux/flxDeviceValueTypes.h>
 
 //---------------------------------------------------------------------------
 // flxLoRaWANLogger Class - outputs data to the lorawan during a log event
@@ -52,7 +53,46 @@ void flxLoRaWANLogger::logObservation(void)
             // we don't process arrays. We only process scalar values
             if ((param->flags() & kParameterOutFlagArray) == kParameterOutFlagArray)
             {
-                flxLog_V("Array parameters not supported by LoRaWAN driver. Parameter: %s", param->name());
+                flxParameterOutArray *pArray = (flxParameterOutArray *)param->accessor();
+                // look for known values - if not, skip
+                switch (pArray->valueType())
+                {
+                case kParamValueLocation: {
+
+                    flxDataArrayFloat *parrData = (flxDataArrayFloat *)pArray->get();
+
+                    // is the data array sane?
+                    if (parrData->size() != 2)
+                    {
+                        flxLog_W("Location array size is not 2. Size: %d", parrData->size());
+                        continue;
+                    }
+
+                    // location is a two element float array, that we want to send in the same packet.
+                    // So first, flush the buffer, then send the data
+                    _pLoRaWAN->flushBuffer();
+
+                    // trick the system into thinking we have a float array, which the LoRaWAN driver
+                    // can handle. We need to do this because the LoRaWAN driver is expecting a float array[2]
+                    float *pfData = parrData->get();
+                    float tmparr[2] = {pfData[0], pfData[1]};
+
+                    if (flxIsLoggingVerbose())
+                    {
+                        // dump out details for the parameter. Note - for packed value, this depends on
+                        // verbose output from the packer.
+                        flxLog_V_("LoRa Packing [%s::%s]  Type: Location  Value ID: 0x%02X Value: (%f,%f)",
+                                  pDevice->name(), param->name(), pArray->valueType(), tmparr[0], tmparr[1]);
+                    }
+
+                    // send the data
+                    status = _pLoRaWAN->sendData(pArray->valueType(), tmparr);
+                    break;
+                }
+                default:
+                    flxLog_V("Array parameters not supported by LoRaWAN driver. Parameter: %s", param->name());
+                    break;
+                }
                 continue;
             }
             flxParameterOutScalar *pScalar = (flxParameterOutScalar *)param->accessor();
