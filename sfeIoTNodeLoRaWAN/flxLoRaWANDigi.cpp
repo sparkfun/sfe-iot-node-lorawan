@@ -412,7 +412,7 @@ bool flxLoRaWANDigi::setupModule(void)
     // if (!_pXBeeLR->setLoRaWANRegion(_lora_region))
     //     flxLog_W(F("%s: Error setting the LoRaWAN Region to `%s`"), name(), getRegionName());
     // else
-    //     flxLog_V(F("%s: Set the LoRaWAN Region to `%s`"), name(), getRegionName());
+    //     flxLog_V_(F("%s: Set the LoRaWAN Region to `%s`"), name(), getRegionName());
 
     // flxLog_N_(F("."));
 
