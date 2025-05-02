@@ -391,7 +391,7 @@ bool flxLoRaWANDigi::setupModule(void)
     for (int i = 0; i < 3; i++)
     {
         flxLog_N_(F("."));
-        if (_pXBeeLR->getLoRaWANDevEUI((uint8_t *)_devEUI, sizeof(_devEUI)))
+        if (_pXBeeLR->getLoRaWANDevEUI(_devEUI, sizeof(_devEUI)))
         {
             status = true;
             break;
