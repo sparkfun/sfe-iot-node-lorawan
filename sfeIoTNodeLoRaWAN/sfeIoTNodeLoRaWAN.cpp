@@ -12,6 +12,7 @@
 #include "sfeNLCommands.h"
 #include "sfeNLLed.h"
 #include "sfeNLVersion.h"
+#include "sfeNLBoard.h"
 #include <Arduino.h>
 
 #include <Flux/flxDevButton.h>
@@ -74,7 +75,7 @@ static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 11
 #define kAppClassPrefix "INLW"
 //---------------------------------------------------------------------------
 //
-sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN() : _opFlags{0}
+sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN() : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _opFlags{0}
 {
     // Constructor
 }
@@ -214,8 +215,10 @@ void sfeIoTNodeLoRaWAN::onInit()
     // flxLog_I("in onInit()");
 
     _logTypeSer = kAppLogTypeNone;
+    _logTypeSD = kAppLogTypeNone;
     serialLogType.setTitle("Output");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
+    flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(jsonBufferSize, "JSON Buffer Size", "Output buffer size in bytes");
 
     // Terminal Serial Baud Rate
@@ -241,6 +244,12 @@ void sfeIoTNodeLoRaWAN::onInit()
     _sysStorageDevice.initialize(preStart, kSegmentSize, 10);
     _sysStorage.setStorageDevice(&_sysStorageDevice);
     flxSettings.setStorage(&_sysStorage);
+    flxSettings.setFallback(&_jsonStorage);
+
+    _jsonStorage.setFileSystem(&_theSDCard);
+    _jsonStorage.setFilename("iot-node-lorawan.json");
+
+    _theSDCard.setCSPin(kNLBoardSDCardCSPin);
 
     // Did the user set a serial value?
     uint32_t theRate;
@@ -323,6 +332,11 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // was list device divers set by startup commands?
     if (inOpMode(kAppOpStartListDevices))
         flux.dumpDeviceAutoLoadTable();
+// setup SD card. Do this before calling start - so prefs can be read off SD if needed
+    if (!setupSDCard())
+    {
+        flxLog_W(F("Unable to initialize the SD Card. Is an SD card installed on the board?"));
+    }
 
     // Button events we're listening on
     _boardButton.on_momentaryPress.call(this, &sfeIoTNodeLoRaWAN::onLogEvent);
@@ -506,6 +520,29 @@ uint32_t sfeIoTNodeLoRaWAN::get_jsonBufferSize(void)
 void sfeIoTNodeLoRaWAN::set_jsonBufferSize(uint32_t new_size)
 {
     _fmtJSON.setBufferSize(new_size);
+}
+
+uint8_t sfeIoTNodeLoRaWAN::get_logTypeSD(void)
+{
+    return _logTypeSD;
+}
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::set_logTypeSD(uint8_t logType)
+{
+    if (logType == _logTypeSD)
+        return;
+
+    if (_logTypeSD == kAppLogTypeCSV)
+        _fmtCSV.remove(&_theOutputFile);
+    else if (_logTypeSD == kAppLogTypeJSON)
+        _fmtJSON.remove(&_theOutputFile);
+
+    _logTypeSD = logType;
+
+    if (_logTypeSD == kAppLogTypeCSV)
+        _fmtCSV.add(&_theOutputFile);
+    else if (_logTypeSD == kAppLogTypeJSON)
+        _fmtJSON.add(&_theOutputFile);
 }
 
 //---------------------------------------------------------------------------

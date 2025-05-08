@@ -19,6 +19,9 @@ const uint8_t kNLBoardUserButton = 24;
 // 3v3 pin
 // const uint8_t kNLBoardEn3v3_SW = 32;
 
+// SD Card CS Ping
+const uint8_t kNLBoardSDCardCSPin = 13;
+
 // LED Built in
 const uint8_t kNLBoardLEDBuiltin = 25;
 

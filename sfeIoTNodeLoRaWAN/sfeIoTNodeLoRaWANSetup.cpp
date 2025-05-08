@@ -89,3 +89,37 @@ void sfeIoTNodeLoRaWAN::setupENS160(void)
         return;
     }
 }
+
+//---------------------------------------------------------------------------
+// setupSDCard()
+//
+// Set's up the SD card subsystem and the objects/systems that use it.
+bool sfeIoTNodeLoRaWAN::setupSDCard(void)
+{
+    
+    // setup output to the SD card
+    if (_theSDCard.initialize())
+    {
+
+        _theOutputFile.setName("Data File", "Output file rotation manager");
+
+        // SD card is available - lets setup output for it
+        // Add the filesystem to the file output/rotation object
+        _theOutputFile.setFileSystem(_theSDCard);
+
+        // setup our file rotation parameters
+        _theOutputFile.filePrefix = "sfe";
+        _theOutputFile.startNumber = 1;
+        _theOutputFile.rotatePeriod(24); // one day
+
+        // add the file output to the CSV output.
+        //_fmtCSV.add(_theOutputFile);
+
+        // have the CSV format driver listen to the new file event. This
+        // will cause a header to be written next cycle.
+        flxRegisterEventCB(flxEvent::kOnNewFile, &_fmtCSV, &flxFormatCSV::output_header);
+
+        return true;
+    }
+    return false;
+}

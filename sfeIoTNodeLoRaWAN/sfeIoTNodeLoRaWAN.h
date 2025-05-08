@@ -24,6 +24,9 @@
 #include <Flux/flxSettingsSerial.h>
 #include <Flux/flxStorageKVPPref.h>
 #include <Flux/flxSystem.h>
+#include <Flux/flxFSSDCard.h>
+#include <Flux/flxFileRotate.h>
+#include <Flux/flxStorageJSONPref.h>
 
 #include "flxLoRaWANDigi.h"
 #include "flxLoRaWANLogger.h"
@@ -78,6 +81,14 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     static constexpr uint8_t kAppLogTypeJSON = 0x2;
 
     static constexpr const char *kLogFormatNames[] = {"Disabled", "CSV Format", "JSON Format"};
+
+
+    //---------------------------------------------------------------------------
+    uint8_t get_logTypeSD(void);
+
+    //---------------------------------------------------------------------------
+    void set_logTypeSD(uint8_t logType);
+    uint8_t _logTypeSD;
     uint8_t _logTypeSer; // type of serial log output format
     //---------------------------------------------------------------------------
     uint8_t get_logTypeSer(void);
@@ -157,6 +168,12 @@ class sfeIoTNodeLoRaWAN : public flxApplication
                       &sfeIoTNodeLoRaWAN::set_verbose_dev_name>
         verboseDevNames;
 
+        flxPropertyRWUInt8<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_logTypeSD, &sfeIoTNodeLoRaWAN::set_logTypeSD> sdCardLogType = {
+            kAppLogTypeCSV,
+            {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
+             {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
+             {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
+    
     flxPropertyRWUInt8<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_logTypeSer, &sfeIoTNodeLoRaWAN::set_logTypeSer>
         serialLogType = {kAppLogTypeCSV,
                          {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
@@ -204,6 +221,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     // setup routines
     bool setupTime();
     void setupENS160(void);
+    bool setupSDCard(void);
 
     // Our LoRaWAN network/connection object
     flxLoRaWANDigi _loraWANConnection;
@@ -219,6 +237,10 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     // Note: setting internal buffer sizes using template to minimize alloc calls.
     flxFormatJSON<kAppJSONDocSize> _fmtJSON;
     flxFormatCSV _fmtCSV;
+
+    flxFSSDCard _theSDCard;
+    flxFileRotate _theOutputFile;
+    flxStorageJSONPrefFile _jsonStorage;
 
     // Serial Settings editor
     flxSettingsSerial _serialSettings;
