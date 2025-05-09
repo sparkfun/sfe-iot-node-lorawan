@@ -120,32 +120,29 @@ class sfeNLCommands
     /// @param theApp Pointer to the DataLogger App
     /// @retval bool indicates success (true) or failure (!true)
     ///
-    // bool loadJSONSettings(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
+    bool loadJSONSettings(sfeIoTNodeLoRaWAN *theApp)
+    {
+        if (!theApp)
+            return false;
 
-    //     flxLog_I(F("Load JSON Settings - Not Implemented"));
+        // Create a JSON prefs serial object and read in the settings
+        flxStorageJSONPrefSerial prefsSerial(flxSettings.fallbackBuffer() > 0 ? flxSettings.fallbackBuffer() : 2000);
 
-    //     // // Create a JSON prefs serial object and read in the settings
-    //     // flxStorageJSONPrefSerial prefsSerial(flxSettings.fallbackBuffer() > 0 ? flxSettings.fallbackBuffer() :
-    //     2000);
+        // restore the settings from serial
+        bool status = flxSettings.restoreObjectFromStorage(&flux, &prefsSerial);
+        if (!status)
+            return false;
 
-    //     // // restore the settings from serial
-    //     // bool status = flxSettings.restoreObjectFromStorage(&flux, &prefsSerial);
-    //     // if (!status)
-    //     //     return false;
+        flxLog_I_(F("Settings restored from serial..."));
 
-    //     // flxLog_I_(F("Settings restored from serial..."));
+        // now save the new settings in primary storage
+        status = flxSettings.save(&flux, true);
+        if (status)
+            flxLog_N(F("saved locally"));
 
-    //     // // now save the new settings in primary storage
-    //     // status = flxSettings.save(&flux, true);
-    //     // if (status)
-    //     //     flxLog_N(F("saved locally"));
-
-    //     // return status;
-    //     return true;
-    // }
+        // return status;
+        return true;
+    }
     //---------------------------------------------------------------------
     ///
     /// @brief Saves the current system to preferences/Settings
@@ -232,35 +229,37 @@ class sfeNLCommands
     /// @param theApp Pointer to the DataLogger App
     /// @retval bool indicates success (true) or failure (!true)
     ///
-    // bool sdCardStats(sfeIoTNodeLoRaWAN *theApp)
-    // {
-    //     if (!theApp)
-    //         return false;
+    bool sdCardStats(sfeIoTNodeLoRaWAN *theApp)
+    {
+        if (!theApp)
+            return false;
 
-    //     flxLog_I(F("SD Stats - Not Implemented"));
+        if (theApp->_theSDCard.enabled())
+        {
+            char szSize[32];
+            char szCap[32];
+            char szAvail[32];
 
-    //     // if (theApp->_theSDCard.enabled())
-    //     // {
+            uint64_t sd_size = theApp->_theSDCard.size();
+            uint64_t sd_total = theApp->_theSDCard.total();
 
-    //     //     char szSize[32];
-    //     //     char szCap[32];
-    //     //     char szAvail[32];
+            flx_utils::formatByteString(sd_size, 2, szSize, sizeof(szSize));
+            flx_utils::formatByteString(sd_total, 2, szCap, sizeof(szCap));
 
-    //     //     flx_utils::formatByteString(theApp->_theSDCard.size(), 2, szSize, sizeof(szSize));
-    //     //     flx_utils::formatByteString(theApp->_theSDCard.total(), 2, szCap, sizeof(szCap));
-    //     //     flx_utils::formatByteString(theApp->_theSDCard.total() - theApp->_theSDCard.used(), 2, szAvail,
-    //     //                                 sizeof(szAvail));
+            flxLog_I_("SD Card - Type: %s Size: %s Capacity: %s ", theApp->_theSDCard.type(), szSize, szCap);
 
-    //     //     flxLog_I(F("SD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)"), theApp->_theSDCard.type(),
-    //     //     szSize,
-    //     //              szCap, szAvail, 100. - (theApp->_theSDCard.used() / (float)theApp->_theSDCard.total() *
-    //     100.));
-    //     // }
-    //     // else
-    //     //     flxLog_I(F("SD card not available"));
+            flxLog_N_("...");
+            flxSerial.flush();
+            // This call can take some time .. .so
+            uint64_t sd_used = theApp->_theSDCard.used();
+            flx_utils::formatByteString(sd_total - sd_used, 2, szAvail, sizeof(szAvail));
+            flxLog_N("Free: %s (%.1f%%)", szAvail, 100. - (sd_used / (float)sd_total * 100.));
+        }
+        else
+            flxLog_I(F("SD card not available"));
 
-    //     return true;
-    // }
+        return true;
+    }
 
     //---------------------------------------------------------------------
     ///
@@ -429,11 +428,11 @@ class sfeNLCommands
         {"clear-settings-forced", &sfeNLCommands::clearDeviceSettingsForced},
         {"restart", &sfeNLCommands::restartDevice},
         {"restart-forced", &sfeNLCommands::restartDeviceForced},
-        // {"json-settings", &sfeNLCommands::loadJSONSettings},
+        {"json-settings", &sfeNLCommands::loadJSONSettings},
         {"log-rate", &sfeNLCommands::logRateStats},
         {"log-rate-toggle", &sfeNLCommands::logRateToggle},
         {"log-now", &sfeNLCommands::logObservationNow},
-        // {"sdcard", &sfeNLCommands::sdCardStats},
+        {"sdcard", &sfeNLCommands::sdCardStats},
         {"devices", &sfeNLCommands::listLoadedDevices},
         {"save-settings", &sfeNLCommands::saveSettings},
         {"heap", &sfeNLCommands::heapStatus},
@@ -472,6 +471,7 @@ class sfeNLCommands
             flxLog_N(F("Unknown Command: `%s`"), sBuffer.c_str());
             status = false;
         }
+        flxLog_N("");
         return status;
     }
 };
