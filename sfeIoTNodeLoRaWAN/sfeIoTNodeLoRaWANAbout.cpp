@@ -17,6 +17,8 @@
 #include <Flux/flxPlatform.h>
 #include <Flux/flxSerial.h>
 
+#include <LittleFS.h>
+
 void sfeIoTNodeLoRaWAN::_displayAboutObjHelper(char pre_ch, const char *szName, bool enabled)
 {
     flxLog_N_("%c    %-20s  : ", pre_ch, szName);
@@ -122,7 +124,6 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
 
         char szSize[32];
         char szCap[32];
-        char szAvail[32];
 
         uint64_t sd_size = _theSDCard.size();
         uint64_t sd_total = _theSDCard.total();
@@ -137,15 +138,39 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
         {
             flxLog_N_("...");
             flxSerial.flush();
+            char szAvail[32];
             // This call can take some time .. .so
             uint64_t sd_used = _theSDCard.used();
             flx_utils::formatByteString(sd_total - sd_used, 2, szAvail, sizeof(szAvail));
             flxLog_N("Free: %s (%.1f%%)", szAvail, 100. - (sd_used / (float)sd_total * 100.));
-        }else 
+        }
+        else
             flxLog_N("");
     }
     else
         flxLog__(logLevel, "%cSD card not available", pre_ch);
+
+    flxLog___(logLevel, "%cSystem File System - ");
+
+    if (_hasOnBoardFlashFS)
+    {
+        FSInfo fs_info;
+        if (LittleFS.info(fs_info))
+        {
+            char szSize[32];
+            char szUsed[32];
+            char szAvail[32];
+            flx_utils::formatByteString(fs_info.totalBytes, 2, szSize, sizeof(szSize));
+            flx_utils::formatByteString(fs_info.usedBytes, 2, szUsed, sizeof(szUsed));
+            flx_utils::formatByteString(fs_info.totalBytes - fs_info.usedBytes, 2, szAvail, sizeof(szAvail));
+
+            flxLog_N("size: %s, used: %s, free: %s", szSize, szUsed, szAvail);
+        }
+        else
+            flxLog_N(F("unable to access info"));
+    }
+    else
+        flxLog_N(F("not available"));
 
     // show heap level
     flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, flxPlatform::heap_size(),

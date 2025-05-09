@@ -76,11 +76,15 @@ jobs:
       # Note:
       #   - The use of a full path to flux - this is needed or the build fails (relative paths get merged).
       #   - ** Nov 25 - for build testing, using the pro micro board definition until new board added
+      # 
+      # May 2025 -
+      # Add filesystem params for the flash layout - 1MB+ for prefs, 4MB for filesystem, the rest (11MB) for firmware
 
       - name: Compile DataLogger firmware binary
         run:
           arduino-cli compile --fqbn rp2040:rp2040:sparkfun_iotnode_lorawanrp2350 ./sfeIoTNodeLoRaWAN/sfeIoTNodeLoRaWAN.ino
           --build-property "compiler.cpp.extra_flags=\"-DIOT_NODE_LORAWAN_APP_KEY=$IOT_NODE_LORAWAN_APP_KEY\" \"-DFLX_SPARKFUN_LORAWAN_APP_EUI=$FLX_SPARKFUN_LORAWAN_APP_EUI\" \"-DBUILD_NUMBER=$GITHUB_RUN_NUMBER\""
+          --build-property build.flash_length=11526144 --build-property upload.maximum_size=11526144 --build-property build.eeprom_start=284155904 --build-property build.fs_end=284155904 --build-property build.fs_start=279961600 --build-property build.flash_total=16777216 
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, partitions, firmware

@@ -9,10 +9,10 @@
  *---------------------------------------------------------------------------------
  */
 #include "sfeIoTNodeLoRaWAN.h"
+#include "sfeNLBoard.h"
 #include "sfeNLCommands.h"
 #include "sfeNLLed.h"
 #include "sfeNLVersion.h"
-#include "sfeNLBoard.h"
 #include <Arduino.h>
 
 #include <Flux/flxDevButton.h>
@@ -75,7 +75,8 @@ static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 11
 #define kAppClassPrefix "INLW"
 //---------------------------------------------------------------------------
 //
-sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN() : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _opFlags{0}
+sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN()
+    : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _opFlags{0}, _hasOnBoardFlashFS{false}
 {
     // Constructor
 }
@@ -332,11 +333,14 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // was list device divers set by startup commands?
     if (inOpMode(kAppOpStartListDevices))
         flux.dumpDeviceAutoLoadTable();
-// setup SD card. Do this before calling start - so prefs can be read off SD if needed
+    // setup SD card. Do this before calling start - so prefs can be read off SD if needed
     if (!setupSDCard())
     {
         flxLog_W(F("Unable to initialize the SD Card. Is an SD card installed on the board?"));
     }
+
+    // check our on-board flash file system
+    _hasOnBoardFlashFS = checkOnBoardFS();
 
     // Button events we're listening on
     _boardButton.on_momentaryPress.call(this, &sfeIoTNodeLoRaWAN::onLogEvent);

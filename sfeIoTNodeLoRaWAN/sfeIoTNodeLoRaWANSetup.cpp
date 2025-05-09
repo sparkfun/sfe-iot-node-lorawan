@@ -21,6 +21,13 @@
 #include <Flux/flxDevRV8803.h>
 #include <Flux/flxDevSHTC3.h>
 
+#include <LittleFS.h>
+
+// on board flash file system bounds
+
+extern uint8_t _FS_start;
+extern uint8_t _FS_end;
+
 //---------------------------------------------------------------------------
 // setupTime()
 //
@@ -96,7 +103,7 @@ void sfeIoTNodeLoRaWAN::setupENS160(void)
 // Set's up the SD card subsystem and the objects/systems that use it.
 bool sfeIoTNodeLoRaWAN::setupSDCard(void)
 {
-    
+
     // setup output to the SD card
     if (_theSDCard.initialize())
     {
@@ -122,4 +129,26 @@ bool sfeIoTNodeLoRaWAN::setupSDCard(void)
         return true;
     }
     return false;
+}
+//---------------------------------------------------------------------------
+// checkOnBoardFS()
+//
+// Do we have an onboard FS?
+
+bool sfeIoTNodeLoRaWAN::checkOnBoardFS(void)
+{
+
+    // Was a filesystem set for the on-board flash?
+    if (&_FS_end - &_FS_start <= 0)
+    {
+        flxLog_W(F("No onboard flash file system detected"));
+        return false;
+    }
+    // Startup little fs
+    if (LittleFS.begin() == false)
+    {
+        flxLog_W(F("Unable to mount flash file system"));
+        return false;
+    }
+    return true;
 }

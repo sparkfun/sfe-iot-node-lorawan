@@ -19,14 +19,14 @@
 
 #include <Flux/flxDevMAX17048.h>
 #include <Flux/flxDevSoilMoisture.h>
+#include <Flux/flxFSSDCard.h>
+#include <Flux/flxFileRotate.h>
 #include <Flux/flxKVPStoreDeviceRP2.h>
 #include <Flux/flxSettings.h>
 #include <Flux/flxSettingsSerial.h>
+#include <Flux/flxStorageJSONPref.h>
 #include <Flux/flxStorageKVPPref.h>
 #include <Flux/flxSystem.h>
-#include <Flux/flxFSSDCard.h>
-#include <Flux/flxFileRotate.h>
-#include <Flux/flxStorageJSONPref.h>
 
 #include "flxLoRaWANDigi.h"
 #include "flxLoRaWANLogger.h"
@@ -81,7 +81,6 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     static constexpr uint8_t kAppLogTypeJSON = 0x2;
 
     static constexpr const char *kLogFormatNames[] = {"Disabled", "CSV Format", "JSON Format"};
-
 
     //---------------------------------------------------------------------------
     uint8_t get_logTypeSD(void);
@@ -168,12 +167,12 @@ class sfeIoTNodeLoRaWAN : public flxApplication
                       &sfeIoTNodeLoRaWAN::set_verbose_dev_name>
         verboseDevNames;
 
-        flxPropertyRWUInt8<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_logTypeSD, &sfeIoTNodeLoRaWAN::set_logTypeSD> sdCardLogType = {
-            kAppLogTypeCSV,
-            {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
-             {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
-             {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
-    
+    flxPropertyRWUInt8<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_logTypeSD, &sfeIoTNodeLoRaWAN::set_logTypeSD>
+        sdCardLogType = {kAppLogTypeCSV,
+                         {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
+                          {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
+                          {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
+
     flxPropertyRWUInt8<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_logTypeSer, &sfeIoTNodeLoRaWAN::set_logTypeSer>
         serialLogType = {kAppLogTypeCSV,
                          {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
@@ -222,6 +221,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     bool setupTime();
     void setupENS160(void);
     bool setupSDCard(void);
+    bool checkOnBoardFS(void);
 
     // Our LoRaWAN network/connection object
     flxLoRaWANDigi _loraWANConnection;
@@ -265,4 +265,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     std::unique_ptr<flxJob> _batteryJob;
 
     uint32_t _opFlags;
+
+    // flag for the on-board flash file system (RP2350)
+    bool _hasOnBoardFlashFS = false;
 };
