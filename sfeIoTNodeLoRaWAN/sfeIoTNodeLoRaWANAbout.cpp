@@ -150,7 +150,7 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     else
         flxLog__(logLevel, "%cSD card not available", pre_ch);
 
-    flxLog___(logLevel, "%cSystem File System - ");
+    flxLog___(logLevel, "%cSystem File System - ", pre_ch);
 
     if (_hasOnBoardFlashFS)
     {
