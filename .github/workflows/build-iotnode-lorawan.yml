@@ -88,9 +88,10 @@ jobs:
           --export-binaries --clean --library `pwd`/SparkFun_IoTNodeLoRaWAN
 
       # Upload the build files - bootloader, partitions, firmware
-      - uses: actions/upload-artifact@v4
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: Upload Build
-          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_iotnode_lorawanrp2350/sfeIoTNodeLoRaWAN.ino.uf2
+          name: Upload Builds
+          path: sfeIoTNodeLoRaWAN/build/rp2040.rp2040.sparkfun_iotnode_lorawanrp2350/
 
       
