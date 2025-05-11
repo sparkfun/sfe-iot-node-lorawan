@@ -33,6 +33,7 @@ flux_sdk_add_module(
     flux_network
     flux_sdcard
     flux_file
+    flux_firmware
     device_bme280
     device_bme68x
     device_bmp384

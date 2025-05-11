@@ -49,6 +49,9 @@ const uint8_t kLoRaWANMsgLEDFlash = 0x05;
 
 // Set the brightness for the  on-board LED
 const uint8_t kLoRaWANMsgLEDBrightness = 0x06;
+
+// For finding the firmware files on SD card
+#define kLoRaWANFirmwareFilePrefix "sfeIoTNodeLoRaWAN_"
 //---------------------------------------------------------------------------
 
 // The default Soil Sensor pins
@@ -338,6 +341,17 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     {
         flxLog_W(F("Unable to initialize the SD Card. Is an SD card installed on the board?"));
     }
+
+    // Filesystem to read firmware from
+    _sysUpdate.setFileSystem(&_theSDCard);
+
+    // Serial UX - used to list files to select off the filesystem
+    _sysUpdate.setSerialSettings(_serialSettings);
+
+    _sysUpdate.setFirmwareFilePrefix(kLoRaWANFirmwareFilePrefix);
+
+    flxRegisterEventCB(flxEvent::kOnFirmwareLoad, this, &sfeIoTNodeLoRaWAN::onFirmwareLoad);
+    flux_add(&_sysUpdate);
 
     // check our on-board flash file system
     _hasOnBoardFlashFS = checkOnBoardFS();
@@ -771,6 +785,15 @@ void sfeIoTNodeLoRaWAN::onSystemResetEvent(void)
     // The system is being reset - reset our settings
     flxSettings.reset();
 }
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::onFirmwareLoad(bool bLoading)
+{
+    if (bLoading)
+        sfeLED.on(sfeLED.Yellow);
+    else
+        sfeLED.off();
+}
+
 //---------------------------------------------------------------------------
 // Callback for LoRaWAN receive events
 void sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent(uint32_t data)

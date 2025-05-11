@@ -17,6 +17,9 @@
 #include <Flux/flxLogger.h>
 #include <Flux/flxTimer.h>
 
+#include "flxLoRaWANDigi.h"
+#include "flxLoRaWANLogger.h"
+#include "sfeNLButton.h"
 #include <Flux/flxDevMAX17048.h>
 #include <Flux/flxDevSoilMoisture.h>
 #include <Flux/flxFSSDCard.h>
@@ -26,11 +29,8 @@
 #include <Flux/flxSettingsSerial.h>
 #include <Flux/flxStorageJSONPref.h>
 #include <Flux/flxStorageKVPPref.h>
+#include <Flux/flxSysFirmware.h>
 #include <Flux/flxSystem.h>
-
-#include "flxLoRaWANDigi.h"
-#include "flxLoRaWANLogger.h"
-#include "sfeNLButton.h"
 
 // Buffer size of our JSON document output
 const uint16_t kAppJSONDocSize = 1600;
@@ -134,6 +134,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     void onErrorMessage(uint8_t);
     void onLogEvent(void);
     void onQwiicButtonEvent(bool);
+    void onFirmwareLoad(bool bLoading);
     void onLoRaWANSendEvent(bool);
     void onLoRaWANReceiveEvent(uint32_t);
 
@@ -257,6 +258,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
 
     // The soil moisture device object -- if a user connects it to the GPIO of the device.
     flxDevSoilMoisture _soilSensor;
+
+    // The system firmware object
+    flxSysFirmware _sysUpdate;
 
     // for our button events of the board
     sfeNLButton _boardButton;
