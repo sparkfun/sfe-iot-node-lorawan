@@ -391,7 +391,7 @@ bool flxLoRaWANDigi::setupModule(void)
     for (int i = 0; i < 3; i++)
     {
         flxLog_N_(F("."));
-        if (_pXBeeLR->getLoRaWANDevEUI((uint8_t *)_devEUI, sizeof(_devEUI)))
+        if (_pXBeeLR->getLoRaWANDevEUI(_devEUI, sizeof(_devEUI)))
         {
             status = true;
             break;
@@ -408,13 +408,13 @@ bool flxLoRaWANDigi::setupModule(void)
 
     // note:
     // TODO: this wasn't working in 12/2024 -- need to revisit in the future as the XBee LR library is updated
-    // // Set the region
-    // if (!_pXBeeLR->setLoRaWANRegion(_lora_region))
-    //     flxLog_W(F("%s: Error setting the LoRaWAN Region to `%s`"), name(), getRegionName());
-    // else
-    //     flxLog_V(F("%s: Set the LoRaWAN Region to `%s`"), name(), getRegionName());
+    // Set the region
+    if (!_pXBeeLR->setLoRaWANRegion(_lora_region))
+        flxLog_W(F("%s: Error setting the LoRaWAN Region to `%s`"), name(), getRegionName());
+    else
+        flxLog_V_(F("%s: Set the LoRaWAN Region to `%s`"), name(), getRegionName());
 
-    // flxLog_N_(F("."));
+    flxLog_N_(F("."));
 
     // Do we need to configure the module?
     if (_moduleConfigured() == false)
