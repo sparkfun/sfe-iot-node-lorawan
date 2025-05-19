@@ -21,6 +21,13 @@
 #include <Flux/flxDevRV8803.h>
 #include <Flux/flxDevSHTC3.h>
 
+#include <LittleFS.h>
+
+// on board flash file system bounds
+
+extern uint8_t _FS_start;
+extern uint8_t _FS_end;
+
 //---------------------------------------------------------------------------
 // setupTime()
 //
@@ -88,4 +95,60 @@ void sfeIoTNodeLoRaWAN::setupENS160(void)
         flxLog_I(F("%s: compensation values applied from %s"), pENS160->name(), pSHTC3->name());
         return;
     }
+}
+
+//---------------------------------------------------------------------------
+// setupSDCard()
+//
+// Set's up the SD card subsystem and the objects/systems that use it.
+bool sfeIoTNodeLoRaWAN::setupSDCard(void)
+{
+
+    // setup output to the SD card
+    if (_theSDCard.initialize())
+    {
+
+        _theOutputFile.setName("Data File", "Output file rotation manager");
+
+        // SD card is available - lets setup output for it
+        // Add the filesystem to the file output/rotation object
+        _theOutputFile.setFileSystem(_theSDCard);
+
+        // setup our file rotation parameters
+        _theOutputFile.filePrefix = "sfe";
+        _theOutputFile.startNumber = 1;
+        _theOutputFile.rotatePeriod(24); // one day
+
+        // add the file output to the CSV output.
+        //_fmtCSV.add(_theOutputFile);
+
+        // have the CSV format driver listen to the new file event. This
+        // will cause a header to be written next cycle.
+        flxRegisterEventCB(flxEvent::kOnNewFile, &_fmtCSV, &flxFormatCSV::output_header);
+
+        return true;
+    }
+    return false;
+}
+//---------------------------------------------------------------------------
+// checkOnBoardFS()
+//
+// Do we have an onboard FS?
+
+bool sfeIoTNodeLoRaWAN::checkOnBoardFS(void)
+{
+
+    // Was a filesystem set for the on-board flash?
+    if (&_FS_end - &_FS_start <= 0)
+    {
+        flxLog_W(F("No onboard flash file system detected"));
+        return false;
+    }
+    // Startup little fs
+    if (LittleFS.begin() == false)
+    {
+        flxLog_W(F("Unable to mount flash file system"));
+        return false;
+    }
+    return true;
 }

@@ -17,16 +17,20 @@
 #include <Flux/flxLogger.h>
 #include <Flux/flxTimer.h>
 
-#include <Flux/flxDevMAX17048.h>
-#include <Flux/flxKVPStoreDeviceRP2.h>
-#include <Flux/flxSettings.h>
-#include <Flux/flxSettingsSerial.h>
-#include <Flux/flxStorageKVPPref.h>
-#include <Flux/flxSystem.h>
-
 #include "flxLoRaWANDigi.h"
 #include "flxLoRaWANLogger.h"
 #include "sfeNLButton.h"
+#include <Flux/flxDevMAX17048.h>
+#include <Flux/flxDevSoilMoisture.h>
+#include <Flux/flxFSSDCard.h>
+#include <Flux/flxFileRotate.h>
+#include <Flux/flxKVPStoreDeviceRP2.h>
+#include <Flux/flxSettings.h>
+#include <Flux/flxSettingsSerial.h>
+#include <Flux/flxStorageJSONPref.h>
+#include <Flux/flxStorageKVPPref.h>
+#include <Flux/flxSysFirmware.h>
+#include <Flux/flxSystem.h>
 
 // Buffer size of our JSON document output
 const uint16_t kAppJSONDocSize = 1600;
@@ -77,6 +81,13 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     static constexpr uint8_t kAppLogTypeJSON = 0x2;
 
     static constexpr const char *kLogFormatNames[] = {"Disabled", "CSV Format", "JSON Format"};
+
+    //---------------------------------------------------------------------------
+    uint8_t get_logTypeSD(void);
+
+    //---------------------------------------------------------------------------
+    void set_logTypeSD(uint8_t logType);
+    uint8_t _logTypeSD;
     uint8_t _logTypeSer; // type of serial log output format
     //---------------------------------------------------------------------------
     uint8_t get_logTypeSer(void);
@@ -110,6 +121,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     bool get_verbose(void);
     void set_verbose(bool enable);
 
+    bool get_soil_enabled(void);
+    void set_soil_enabled(bool enable);
+
     void onSettingsEdit(bool bLoading);
     void onSystemActivity(void);
     void onSystemActivityLow(void);
@@ -120,6 +134,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     void onErrorMessage(uint8_t);
     void onLogEvent(void);
     void onQwiicButtonEvent(bool);
+    void onFirmwareLoad(bool bLoading);
     void onLoRaWANSendEvent(bool);
     void onLoRaWANReceiveEvent(uint32_t);
 
@@ -153,6 +168,12 @@ class sfeIoTNodeLoRaWAN : public flxApplication
                       &sfeIoTNodeLoRaWAN::set_verbose_dev_name>
         verboseDevNames;
 
+    flxPropertyRWUInt8<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_logTypeSD, &sfeIoTNodeLoRaWAN::set_logTypeSD>
+        sdCardLogType = {kAppLogTypeCSV,
+                         {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
+                          {kLogFormatNames[kAppLogTypeCSV], kAppLogTypeCSV},
+                          {kLogFormatNames[kAppLogTypeJSON], kAppLogTypeJSON}}};
+
     flxPropertyRWUInt8<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_logTypeSer, &sfeIoTNodeLoRaWAN::set_logTypeSer>
         serialLogType = {kAppLogTypeCSV,
                          {{kLogFormatNames[kAppLogTypeNone], kAppLogTypeNone},
@@ -176,6 +197,9 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     flxPropertyRWBool<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_verbose, &sfeIoTNodeLoRaWAN::set_verbose>
         verboseEnabled = {false};
 
+    flxPropertyRWBool<sfeIoTNodeLoRaWAN, &sfeIoTNodeLoRaWAN::get_soil_enabled, &sfeIoTNodeLoRaWAN::set_soil_enabled>
+        enableSoilSensor = {false};
+
   private:
     friend class sfeNLCommands;
     void _displayAboutObjHelper(char, const char *, bool);
@@ -197,6 +221,8 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     // setup routines
     bool setupTime();
     void setupENS160(void);
+    bool setupSDCard(void);
+    bool checkOnBoardFS(void);
 
     // Our LoRaWAN network/connection object
     flxLoRaWANDigi _loraWANConnection;
@@ -213,6 +239,10 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     flxFormatJSON<kAppJSONDocSize> _fmtJSON;
     flxFormatCSV _fmtCSV;
 
+    flxFSSDCard _theSDCard;
+    flxFileRotate _theOutputFile;
+    flxStorageJSONPrefFile _jsonStorage;
+
     // Serial Settings editor
     flxSettingsSerial _serialSettings;
 
@@ -226,6 +256,12 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     // Fuel gauge
     flxDevMAX17048 *_fuelGauge;
 
+    // The soil moisture device object -- if a user connects it to the GPIO of the device.
+    flxDevSoilMoisture _soilSensor;
+
+    // The system firmware object
+    flxSysFirmware _sysUpdate;
+
     // for our button events of the board
     sfeNLButton _boardButton;
 
@@ -233,4 +269,7 @@ class sfeIoTNodeLoRaWAN : public flxApplication
     std::unique_ptr<flxJob> _batteryJob;
 
     uint32_t _opFlags;
+
+    // flag for the on-board flash file system (RP2350)
+    bool _hasOnBoardFlashFS = false;
 };

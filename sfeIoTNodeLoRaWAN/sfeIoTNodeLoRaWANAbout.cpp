@@ -17,6 +17,8 @@
 #include <Flux/flxPlatform.h>
 #include <Flux/flxSerial.h>
 
+#include <LittleFS.h>
+
 void sfeIoTNodeLoRaWAN::_displayAboutObjHelper(char pre_ch, const char *szName, bool enabled)
 {
     flxLog_N_("%c    %-20s  : ", pre_ch, szName);
@@ -115,24 +117,60 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
         flxSerial.textToWhite();
         flxLog_N("    System:");
         flxSerial.textToNormal();
+        flxSerial.flush();
     }
-    // if (_theSDCard.enabled())
-    // {
+    if (_theSDCard.enabled())
+    {
 
-    //     char szSize[32];
-    //     char szCap[32];
-    //     char szAvail[32];
+        char szSize[32];
+        char szCap[32];
 
-    //     flx_utils::formatByteString(_theSDCard.size(), 2, szSize, sizeof(szSize));
-    //     flx_utils::formatByteString(_theSDCard.total(), 2, szCap, sizeof(szCap));
-    //     flx_utils::formatByteString(_theSDCard.total() - _theSDCard.used(), 2, szAvail, sizeof(szAvail));
+        uint64_t sd_size = _theSDCard.size();
+        uint64_t sd_total = _theSDCard.total();
 
-    //     flxLog__(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s Free: %s (%.1f%%)", pre_ch,
-    //     _theSDCard.type(),
-    //              szSize, szCap, szAvail, 100. - (_theSDCard.used() / (float)_theSDCard.total() * 100.));
-    // }
-    // else
-    //     flxLog__(logLevel, "%cSD card not available", pre_ch);
+        flx_utils::formatByteString(sd_size, 2, szSize, sizeof(szSize));
+        flx_utils::formatByteString(sd_total, 2, szCap, sizeof(szCap));
+
+        flxLog___(logLevel, "%cSD Card - Type: %s Size: %s Capacity: %s ", pre_ch, _theSDCard.type(), szSize, szCap);
+
+        // Getting about used can take time -- so only do if about is called (use info is false)
+        if (!useInfo)
+        {
+            flxLog_N_("...");
+            flxSerial.flush();
+            char szAvail[32];
+            // This call can take some time .. .so
+            uint64_t sd_used = _theSDCard.used();
+            flx_utils::formatByteString(sd_total - sd_used, 2, szAvail, sizeof(szAvail));
+            flxLog_N("Free: %s (%.1f%%)", szAvail, 100. - (sd_used / (float)sd_total * 100.));
+        }
+        else
+            flxLog_N("");
+    }
+    else
+        flxLog__(logLevel, "%cSD card not available", pre_ch);
+
+    flxLog___(logLevel, "%cSystem File System - ", pre_ch);
+
+    if (_hasOnBoardFlashFS)
+    {
+        FSInfo fs_info;
+        if (LittleFS.info(fs_info))
+        {
+            char szSize[32];
+            char szUsed[32];
+            char szAvail[32];
+            flx_utils::formatByteString(fs_info.totalBytes, 2, szSize, sizeof(szSize));
+            flx_utils::formatByteString(fs_info.usedBytes, 2, szUsed, sizeof(szUsed));
+            flx_utils::formatByteString(fs_info.totalBytes - fs_info.usedBytes, 2, szAvail, sizeof(szAvail));
+
+            flxLog_N("size: %s, used: %s, free: %s", szSize, szUsed, szAvail);
+        }
+        else
+            flxLog_N(F("unable to access info"));
+    }
+    else
+        flxLog_N(F("not available"));
 
     // show heap level
     flxLog__(logLevel, "%cSystem Heap - Total: %dB Free: %dB (%.1f%%)", pre_ch, flxPlatform::heap_size(),
@@ -167,15 +205,15 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
     flxLog__(logLevel, "%cJSON Buffer - Size: %dB Max Used: %dB", pre_ch, jsonBufferSize(), _fmtJSON.getMaxSizeUsed());
     flxLog__(logLevel, "%cSerial Output: %s", pre_ch, kLogFormatNames[serialLogType()]);
     flxLog_N("%c    Baud Rate: %d", pre_ch, serialBaudRate());
+    flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
 
     // flxLog__(logLevel, "%cSD Card Output: %s", pre_ch, kLogFormatNames[sdCardLogType()]);
 
     // at startup, useInfo == true, the file isn't known, so skip output
-    // if (!useInfo)
-    //     flxLog_N("%c    Current Filename: \t%s", pre_ch,
-    //              _theOutputFile.currentFilename().length() == 0 ? "<none>" :
-    //              _theOutputFile.currentFilename().c_str());
-    // flxLog_N("%c    Rotate Period: %d Hours", pre_ch, _theOutputFile.rotatePeriod());
+    if (!useInfo)
+        flxLog_N("%c    Current Filename: \t%s", pre_ch,
+                 _theOutputFile.currentFilename().length() == 0 ? "<none>" : _theOutputFile.currentFilename().c_str());
+    flxLog_N("%c    Rotate Period: %d Hours", pre_ch, _theOutputFile.rotatePeriod());
 
     flxLog_N("");
 
@@ -196,8 +234,11 @@ void sfeIoTNodeLoRaWAN::displayAppStatus(bool useInfo)
         flxLog_N_(F("%c    %-20s  - %-40s  {"), pre_ch, device->name(), device->description());
         if (device->getKind() == flxDeviceKindI2C)
             flxLog_N("%s x%x}", "qwiic", device->address());
-        else
+
+        else if (device->getKind() == flxDeviceKindSPI)
             flxLog_N("%s p%u}", "SPI", device->address());
+        else if (device->getKind() == flxDeviceKindGPIO)
+            flxLog_N("%s p%u}", "GPIO", device->address());
     }
 
     flxLog_N("");
