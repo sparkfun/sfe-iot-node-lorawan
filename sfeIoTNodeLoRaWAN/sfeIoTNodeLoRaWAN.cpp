@@ -9,6 +9,7 @@
  *---------------------------------------------------------------------------------
  */
 #include "sfeIoTNodeLoRaWAN.h"
+#include "sfeNLBoard.h"
 #include "sfeNLCommands.h"
 #include "sfeNLLed.h"
 #include "sfeNLVersion.h"
@@ -48,6 +49,14 @@ const uint8_t kLoRaWANMsgLEDFlash = 0x05;
 
 // Set the brightness for the  on-board LED
 const uint8_t kLoRaWANMsgLEDBrightness = 0x06;
+
+// For finding the firmware files on SD card
+#define kLoRaWANFirmwareFilePrefix "sfeIoTNodeLoRaWAN_"
+//---------------------------------------------------------------------------
+
+// The default Soil Sensor pins
+const uint8_t kSoilSensorVCCPin = 28;
+const uint8_t kSoilSensorSensorPin = 29;
 //---------------------------------------------------------------------------
 
 // Application keys - used to encrypt runtime secrets for the app.
@@ -69,7 +78,8 @@ static const uint8_t _app_jump[] = {104, 72, 67, 51,  74,  67,  108, 99, 104, 11
 #define kAppClassPrefix "INLW"
 //---------------------------------------------------------------------------
 //
-sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN() : _opFlags{0}
+sfeIoTNodeLoRaWAN::sfeIoTNodeLoRaWAN()
+    : _logTypeSD{kAppLogTypeNone}, _logTypeSer{kAppLogTypeNone}, _opFlags{0}, _hasOnBoardFlashFS{false}
 {
     // Constructor
 }
@@ -209,14 +219,18 @@ void sfeIoTNodeLoRaWAN::onInit()
     // flxLog_I("in onInit()");
 
     _logTypeSer = kAppLogTypeNone;
+    _logTypeSD = kAppLogTypeNone;
     serialLogType.setTitle("Output");
     flxRegister(serialLogType, "Serial Console Format", "Enable and set the output format");
+    flxRegister(sdCardLogType, "SD Card Format", "Enable and set the output format");
     flxRegister(jsonBufferSize, "JSON Buffer Size", "Output buffer size in bytes");
 
     // Terminal Serial Baud Rate
     flxRegister(serialBaudRate, "Terminal Baud Rate", "Update terminal baud rate. Changes take effect on restart");
     _terminalBaudRate = kDefaultTerminalBaudRate;
 
+    enableSoilSensor.setTitle("Devices");
+    flxRegister(enableSoilSensor, "Soil Moisture Sensor", "Enable GPIO attached Soil Moisture Sensor");
     // Advanced settings
     verboseDevNames.setTitle("Advanced");
     flxRegister(verboseDevNames, "Device Names", "Name always includes the device address");
@@ -234,6 +248,12 @@ void sfeIoTNodeLoRaWAN::onInit()
     _sysStorageDevice.initialize(preStart, kSegmentSize, 10);
     _sysStorage.setStorageDevice(&_sysStorageDevice);
     flxSettings.setStorage(&_sysStorage);
+    flxSettings.setFallback(&_jsonStorage);
+
+    _jsonStorage.setFileSystem(&_theSDCard);
+    _jsonStorage.setFilename("iot-node-lorawan.json");
+
+    _theSDCard.setCSPin(kNLBoardSDCardCSPin);
 
     // Did the user set a serial value?
     uint32_t theRate;
@@ -316,6 +336,25 @@ bool sfeIoTNodeLoRaWAN::onSetup()
     // was list device divers set by startup commands?
     if (inOpMode(kAppOpStartListDevices))
         flux.dumpDeviceAutoLoadTable();
+    // setup SD card. Do this before calling start - so prefs can be read off SD if needed
+    if (!setupSDCard())
+    {
+        flxLog_W(F("Unable to initialize the SD Card. Is an SD card installed on the board?"));
+    }
+
+    // Filesystem to read firmware from
+    _sysUpdate.setFileSystem(&_theSDCard);
+
+    // Serial UX - used to list files to select off the filesystem
+    _sysUpdate.setSerialSettings(_serialSettings);
+
+    _sysUpdate.setFirmwareFilePrefix(kLoRaWANFirmwareFilePrefix);
+
+    flxRegisterEventCB(flxEvent::kOnFirmwareLoad, this, &sfeIoTNodeLoRaWAN::onFirmwareLoad);
+    flux_add(&_sysUpdate);
+
+    // check our on-board flash file system
+    _hasOnBoardFlashFS = checkOnBoardFS();
 
     // Button events we're listening on
     _boardButton.on_momentaryPress.call(this, &sfeIoTNodeLoRaWAN::onLogEvent);
@@ -354,6 +393,10 @@ void sfeIoTNodeLoRaWAN::onDeviceLoad()
 
     for (auto b : *buttons)
         b->on_clicked.call(this, &sfeIoTNodeLoRaWAN::onQwiicButtonEvent);
+
+    // setup our soil sensor device
+    _soilSensor.vccPin = kSoilSensorVCCPin;
+    _soilSensor.sensorPin = kSoilSensorSensorPin;
 }
 //---------------------------------------------------------------------------
 //
@@ -396,8 +439,10 @@ bool sfeIoTNodeLoRaWAN::onStart()
             flxLog_N_(F("    %-20s  - %-40s  {"), device->name(), device->description());
             if (device->getKind() == flxDeviceKindI2C)
                 flxLog_N("%s x%x}", "qwiic", device->address());
-            else
+            else if (device->getKind() == flxDeviceKindSPI)
                 flxLog_N("%s p%u}", "SPI", device->address());
+            else if (device->getKind() == flxDeviceKindGPIO)
+                flxLog_N("%s p%u}", "GPIO", device->address());
 
             if (device->nOutputParameters() > 0)
             {
@@ -495,6 +540,29 @@ void sfeIoTNodeLoRaWAN::set_jsonBufferSize(uint32_t new_size)
     _fmtJSON.setBufferSize(new_size);
 }
 
+uint8_t sfeIoTNodeLoRaWAN::get_logTypeSD(void)
+{
+    return _logTypeSD;
+}
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::set_logTypeSD(uint8_t logType)
+{
+    if (logType == _logTypeSD)
+        return;
+
+    if (_logTypeSD == kAppLogTypeCSV)
+        _fmtCSV.remove(&_theOutputFile);
+    else if (_logTypeSD == kAppLogTypeJSON)
+        _fmtJSON.remove(&_theOutputFile);
+
+    _logTypeSD = logType;
+
+    if (_logTypeSD == kAppLogTypeCSV)
+        _fmtCSV.add(&_theOutputFile);
+    else if (_logTypeSD == kAppLogTypeJSON)
+        _fmtJSON.add(&_theOutputFile);
+}
+
 //---------------------------------------------------------------------------
 uint8_t sfeIoTNodeLoRaWAN::get_logTypeSer(void)
 {
@@ -547,6 +615,45 @@ void sfeIoTNodeLoRaWAN::set_local_name(std::string name)
     flux.setLocalName(name);
 }
 
+//---------------------------------------------------------------------------
+// soil sensor enabled/disable
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::set_soil_enabled(bool enable)
+{
+    // Is the soil sensor in the system?
+
+    bool active = flux.contains(_soilSensor);
+    if (active == enable)
+        return; // same
+
+    if (enable)
+    {
+        // is the sensor initialized?
+        if (!_soilSensor.isInitialized())
+        {
+            // init the sensor - this adds to the device list
+            if (_soilSensor.initialize() == false)
+                flxLog_W(F("%s: failed to initialize."), _soilSensor.name());
+        }
+        else
+            flux.add(_soilSensor);
+        _loraWANLogger.add(_soilSensor);
+        _logger.add(_soilSensor);
+    }
+    else
+    {
+        flux.remove(_soilSensor);
+        _loraWANLogger.remove(_soilSensor);
+        _logger.remove(_soilSensor);
+    }
+
+    _soilSensor.isEnabled(enable);
+}
+
+bool sfeIoTNodeLoRaWAN::get_soil_enabled(void)
+{
+    return flux.contains(_soilSensor);
+}
 //---------------------------------------------------------------------------
 // Display things during settings edits
 //---------------------------------------------------------------------------
@@ -678,6 +785,15 @@ void sfeIoTNodeLoRaWAN::onSystemResetEvent(void)
     // The system is being reset - reset our settings
     flxSettings.reset();
 }
+//---------------------------------------------------------------------------
+void sfeIoTNodeLoRaWAN::onFirmwareLoad(bool bLoading)
+{
+    if (bLoading)
+        sfeLED.on(sfeLED.Yellow);
+    else
+        sfeLED.off();
+}
+
 //---------------------------------------------------------------------------
 // Callback for LoRaWAN receive events
 void sfeIoTNodeLoRaWAN::onLoRaWANReceiveEvent(uint32_t data)
