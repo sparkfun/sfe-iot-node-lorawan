@@ -15,7 +15,10 @@ The IoT Node - LoRaWAN firmware is highly configurable via an easily to use seri
 
 ## Latest Firmware
 
-* Version 01.00.00 - [Release](https://github.com/sparkfun/sfe-iot-node-lorawan/releases/tag/v01.00.00)
+* Version 01.01.00 - [Release](https://github.com/sparkfun/sfe-iot-node-lorawan/releases/tag/v01.01.00)
+
+> NOTE
+> With firmware version v1.1.0 and above, the XBee LR module on the IoT Node - LoRaWAN board must be running firmware version A5013 - (May 1, 2025) or later. Details on the firmware and how to update are located [here](https://hub.digi.com/support/products/xbee-studio/?_gl=1*1dnbbi0*_gcl_au*MTY5MDM3NjY5LjE3NDYwNDk1Nzg.*_ga*MjY3MjAwOTM1LjE3NDYwNDk1Nzg.*_ga_RZXDK3PM3B*MTc0NjIyNTE0NC42LjAuMTc0NjIyNTE0NC42MC4wLjE4MzUzMzYzNjg.)
 
 ## Documentation
 
