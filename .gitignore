@@ -2,3 +2,8 @@
 build/
 
 SparkFun_IoTNodeLoRaWAN/
+.idea/
+
+cmake-build-debug/
+
+.vscode/
